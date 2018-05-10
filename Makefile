@@ -1,6 +1,6 @@
-SOURCES = main.c \
+SOURCES = parsing.c \
           mpc.c
-OBJECTS = main.o \
+OBJECTS = parsing.o \
           mpc.o
 
 CFLAGS = -Wall -std=gnu11
@@ -8,8 +8,8 @@ LDFLAGS = -ledit
 
 CC = gcc
 
-main.o: main.c
-	$(CC) $(CFLAGS) -c main.c
+parsing.o: parsing.c
+	$(CC) $(CFLAGS) -c parsing.c
 
 mpc.o: mpc.c
 	$(CC) $(CFLAGS) -c mpc.c
