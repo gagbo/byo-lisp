@@ -4,6 +4,8 @@
 #include <editline/readline.h>
 #include <histedit.h>
 
+#include "mpc.h"
+
 int main(int argc, char** argv) {
     puts("Lispy Version 0.0.0.0.1");
     puts("Press Ctrl+C to exit\n");
