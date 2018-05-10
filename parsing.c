@@ -5,6 +5,7 @@
 #include <histedit.h>
 
 #include "mpc.h"
+#include "evaluation.h"
 
 int main(int argc, char** argv) {
 
@@ -22,7 +23,7 @@ int main(int argc, char** argv) {
               ",
               Number, Operator, Expr, Lispy);
 
-    puts("Lispy Version 0.0.0.0.2");
+    puts("Lispy Version 0.0.0.0.3");
     puts("Press Ctrl+C to exit\n");
 
     while(1) {
@@ -32,7 +33,8 @@ int main(int argc, char** argv) {
 
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Lispy, &r)) {
-            mpc_ast_print(r.output);
+            long result = eval(r.output);
+            printf("%li\n", result);
             mpc_ast_delete(r.output);
         } else {
             mpc_err_print(r.error);
