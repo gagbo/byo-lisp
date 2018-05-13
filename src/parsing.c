@@ -11,20 +11,22 @@
 int
 main(int argc, char** argv) {
     mpc_parser_t* Number = mpc_new("number");
-    mpc_parser_t* Operator = mpc_new("operator");
+    mpc_parser_t* Operator = mpc_new("symbol");
+    mpc_parser_t* SExpr = mpc_new("sexpr");
     mpc_parser_t* Expr = mpc_new("expr");
     mpc_parser_t* Lispy = mpc_new("lispy");
 
     mpca_lang(MPCA_LANG_DEFAULT,
               "                                                    \
                 number   : /-?[0-9]+/ ;                            \
-                operator : '+' | '-' | '*' | '/' ;                 \
-                expr     : <number> | '(' <operator> <expr>+ ')' ; \
-                lispy    : /^/ <operator> <expr>+ /$/ ;            \
+                symbol   : '+' | '-' | '*' | '/' | '%' ;           \
+                sexpr    : '(' <expr>* ')' ;                       \
+                expr     : <number> | <symbol> | <sexpr> ;         \
+                lispy    : /^/ <expr>* /$/ ;                       \
               ",
-              Number, Operator, Expr, Lispy);
+              Number, Operator, SExpr, Expr, Lispy);
 
-    puts("Lispy Version 0.0.0.0.3");
+    puts("Lispy Version 0.0.0.0.4");
     puts("Press Ctrl+C to exit\n");
 
     while (1) {
@@ -34,9 +36,10 @@ main(int argc, char** argv) {
 
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Lispy, &r)) {
-            struct lval result = eval(r.output);
+            struct lval* result = lval_eval(lval_read(r.output));
             lval_println(result);
             mpc_ast_delete(r.output);
+            lval_del(result);
         } else {
             mpc_err_print(r.error);
             mpc_err_delete(r.error);
@@ -45,6 +48,6 @@ main(int argc, char** argv) {
         free(input);
     }
 
-    mpc_cleanup(4, Number, Operator, Expr, Lispy);
+    mpc_cleanup(5, Number, Operator, SExpr, Expr, Lispy);
     return EXIT_SUCCESS;
 }
