@@ -1,23 +1,19 @@
-SOURCES = parsing.c \
-          mpc.c \
-          evaluation.c
-OBJECTS = parsing.o \
-          mpc.o \
-          evaluation.o
+CC = gcc
 
 CFLAGS = -Wall -std=gnu11
 LDFLAGS = -ledit -lm
 
-CC = gcc
+BUILD_DIR = build
+SRC_DIR = src
+SOURCES = parsing.c \
+          mpc.c \
+          evaluation.c \
 
-parsing.o: parsing.c
-	$(CC) $(CFLAGS) -c parsing.c
+OBJECTS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 
-mpc.o: mpc.c
-	$(CC) $(CFLAGS) -c mpc.c
-
-evaluation.o: evaluation.c
-	$(CC) $(CFLAGS) -c evaluation.c
+$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c $< -o $@
 
 lisp: $(OBJECTS)
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o lisp

@@ -2,6 +2,7 @@
 #define EVALUATION_H_
 
 #include "mpc.h"
+#include "lval.h"
 
 long eval(mpc_ast_t* a);
 long eval_op(long x, char* op, long y);
