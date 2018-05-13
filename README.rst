@@ -12,3 +12,10 @@ more about how Lisp works and learning how to maintain manually a Makefile for
 a slightly bigger C project.
 
 .. _online book: http://buildyourownlisp.com
+
+1. Build instructions
+=====================
+
+::
+    make lisp
+    ./lisp
