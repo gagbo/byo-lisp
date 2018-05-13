@@ -17,5 +17,6 @@ a slightly bigger C project.
 =====================
 
 ::
+
     make lisp
     ./lisp
