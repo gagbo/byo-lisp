@@ -1,6 +1,6 @@
 CC = gcc
 
-CFLAGS = -Wall -std=gnu11
+CFLAGS = -Wall -std=gnu11 -g
 LDFLAGS = -ledit -lm
 
 BUILD_DIR = build
@@ -8,6 +8,7 @@ SRC_DIR = src
 SOURCES = parsing.c \
           mpc.c \
           evaluation.c \
+          lval.c
 
 OBJECTS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 
@@ -22,4 +23,4 @@ run: lisp
 	./lisp
 
 clean:
-	rm $(OBJECTS)
+	rm -f $(OBJECTS)

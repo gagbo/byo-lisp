@@ -4,7 +4,7 @@
 #include "mpc.h"
 #include "lval.h"
 
-long eval(mpc_ast_t* a);
-long eval_op(long x, char* op, long y);
+struct lval eval(mpc_ast_t* a);
+struct lval eval_op(struct lval x, char* op, struct lval y);
 
 #endif  // EVALUATION_H_

@@ -1,26 +1,26 @@
 #include "evaluation.h"
 
+#include <errno.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 #include "mpc.h"
 
-long eval(mpc_ast_t* a) {
-    /**
-     * Printing the AST node information
-     * printf("Tag : %s\n", a->tag);
-     * printf("Contents : %s\n", a->contents);
-     * printf("Count of children : %d\n\n", a->children_num);
-     */
+struct lval eval(mpc_ast_t* a) {
 
     if (strstr(a->tag, "number")) {
-        return atoi(a->contents);
+        errno = 0;
+        long x = strtol(a->contents, NULL, 10);
+        return errno != ERANGE
+            ? lval_num(x)
+            : lval_err(LERR_BAD_NUM);
     }
 
     /* In this case (!number), 0 is '(' */
     char* op = a->children[1]->contents;
 
-    long x = eval(a->children[2]);
+    struct lval x = eval(a->children[2]);
 
     int i = 3;
     while (strstr(a->children[i]->tag, "expr")) {
@@ -31,10 +31,18 @@ long eval(mpc_ast_t* a) {
     return x;
 }
 
-long eval_op(long x, char* op, long y) {
-    if (strcmp(op, "+") == 0) { return x + y; }
-    if (strcmp(op, "-") == 0) { return x - y; }
-    if (strcmp(op, "*") == 0) { return x * y; }
-    if (strcmp(op, "/") == 0) { return x / y; }
-    return 0;
+struct lval eval_op(struct lval x, char* op, struct lval y) {
+    if (x.type == LVAL_ERR) { return x; }
+    if (y.type == LVAL_ERR) { return y; }
+
+    if (strcmp(op, "+") == 0) { return lval_num(x.num + y.num); }
+    if (strcmp(op, "-") == 0) { return lval_num(x.num - y.num); }
+    if (strcmp(op, "*") == 0) { return lval_num(x.num * y.num); }
+    if (strcmp(op, "/") == 0) { 
+        return y.num == 0
+            ? lval_err(LERR_DIV_ZERO)
+            : lval_num(x.num / y.num);
+    }
+
+    return lval_err(LERR_BAD_OP);
 }
