@@ -7,7 +7,7 @@
 static struct lval* lval_eval_sexpr(struct lval* v);
 
 struct lval*
-lval_num(long x) {
+lval_num(double x) {
     struct lval* v = malloc(sizeof(struct lval));
     v->type = LVAL_NUM;
     v->num = x;
@@ -64,7 +64,7 @@ lval_del(struct lval* v) {
 struct lval*
 lval_read_num(mpc_ast_t* t) {
     errno = 0;
-    long x = strtol(t->contents, NULL, 10);
+    double x = strtod(t->contents, NULL);
     return errno != ERANGE ? lval_num(x) : lval_err("invalid number");
 }
 
@@ -180,7 +180,7 @@ void
 lval_print(struct lval* v) {
     switch (v->type) {
         case LVAL_NUM:
-            printf("%li", v->num);
+            printf("%g", v->num);
             break;
 
         case LVAL_ERR:

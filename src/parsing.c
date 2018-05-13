@@ -17,12 +17,12 @@ main(int argc, char** argv) {
     mpc_parser_t* Lispy = mpc_new("lispy");
 
     mpca_lang(MPCA_LANG_DEFAULT,
-              "                                                    \
-                number   : /-?[0-9]+/ ;                            \
-                symbol   : '+' | '-' | '*' | '/' | '%' ;           \
-                sexpr    : '(' <expr>* ')' ;                       \
-                expr     : <number> | <symbol> | <sexpr> ;         \
-                lispy    : /^/ <expr>* /$/ ;                       \
+              "                                                          \
+                number   : /[-]?([0-9]*[.])?[0-9]+([eE]?[+-]?[0-9]+)?/ ;  \
+                symbol   : '+' | '-' | '*' | '/' | '%' | /floor/ ;       \
+                sexpr    : '(' <expr>* ')' ;                             \
+                expr     : <number> | <symbol> | <sexpr> ;               \
+                lispy    : /^/ <expr>* /$/ ;                             \
               ",
               Number, Operator, SExpr, Expr, Lispy);
 

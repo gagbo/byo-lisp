@@ -1,6 +1,7 @@
 #include "evaluation.h"
 
 #include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,7 +12,7 @@ struct lval*
 eval(mpc_ast_t* a) {
     if (strstr(a->tag, "number")) {
         errno = 0;
-        long x = strtol(a->contents, NULL, 10);
+        double x = strtod(a->contents, NULL);
         return errno != ERANGE ? lval_num(x) : lval_err("invalid number");
     }
 
@@ -72,6 +73,14 @@ builtin_op(struct lval* a, char* op) {
     if (strcmp(op, "-") == 0 && a->count == 0) {
         x->num = -x->num;
     }
+    if (strcmp(op, "floor") == 0) {
+        if (a->count == 0) {
+            x->num = floor(x->num);
+        } else {
+            lval_del(a);
+            return lval_err("floor expects one argument !");
+        }
+    }
 
     while (a->count > 0) {
         struct lval* y = lval_eval(lval_pop(a, 0));
@@ -100,7 +109,7 @@ builtin_op(struct lval* a, char* op) {
                 x = lval_err("division by zero");
                 break;
             }
-            x->num %= y->num;
+            x->num = (int)round(x->num) % (int)round(y->num);
         }
         lval_del(y);
     }
