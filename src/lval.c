@@ -1,21 +1,24 @@
 #include "lval.h"
 #include <stdio.h>
 
-struct lval lval_num(long x) {
+struct lval
+lval_num(long x) {
     struct lval v;
     v.type = LVAL_NUM;
     v.num = x;
     return v;
 }
 
-struct lval lval_err(int x) {
+struct lval
+lval_err(int x) {
     struct lval v;
     v.type = LVAL_ERR;
     v.err = x;
     return v;
 }
 
-void lval_print(struct lval v) {
+void
+lval_print(struct lval v) {
     switch (v.type) {
         case LVAL_NUM:
             printf("%li", v.num);
@@ -39,7 +42,8 @@ void lval_print(struct lval v) {
     }
 }
 
-void lval_println(struct lval v) {
+void
+lval_println(struct lval v) {
     lval_print(v);
     putchar('\n');
 }

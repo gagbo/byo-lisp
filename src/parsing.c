@@ -1,15 +1,15 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <editline/readline.h>
 #include <histedit.h>
 
-#include "mpc.h"
 #include "evaluation.h"
 #include "lval.h"
+#include "mpc.h"
 
-int main(int argc, char** argv) {
-
+int
+main(int argc, char** argv) {
     mpc_parser_t* Number = mpc_new("number");
     mpc_parser_t* Operator = mpc_new("operator");
     mpc_parser_t* Expr = mpc_new("expr");
@@ -27,7 +27,7 @@ int main(int argc, char** argv) {
     puts("Lispy Version 0.0.0.0.3");
     puts("Press Ctrl+C to exit\n");
 
-    while(1) {
+    while (1) {
         char* input = readline("lispy> ");
 
         add_history(input);
