@@ -4,6 +4,6 @@
 #include "lval.h"
 #include "mpc.h"
 
-struct lval* builtin_op(struct lval* x, char* op);
+struct lval* builtin(struct lval* x, char* op);
 
 #endif  // EVALUATION_H_

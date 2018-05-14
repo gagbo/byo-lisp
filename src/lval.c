@@ -1,8 +1,8 @@
+#include "lval.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lval.h"
 
 static struct lval* lval_eval_sexpr(struct lval* v);
 
@@ -39,6 +39,15 @@ lval_sexpr() {
     return v;
 }
 
+struct lval*
+lval_qexpr() {
+    struct lval* v = malloc(sizeof(struct lval));
+    v->type = LVAL_QEXPR;
+    v->count = 0;
+    v->cell = NULL;
+    return v;
+}
+
 void
 lval_del(struct lval* v) {
     switch (v->type) {
@@ -50,6 +59,7 @@ lval_del(struct lval* v) {
         case LVAL_SYM:
             free(v->sym);
             break;
+        case LVAL_QEXPR:
         case LVAL_SEXPR:
             for (int i = 0; i < v->count; ++i) {
                 lval_del(v->cell[i]);
@@ -85,12 +95,21 @@ lval_read(mpc_ast_t* t) {
     if (strstr(t->tag, "sexpr")) {
         x = lval_sexpr();
     }
+    if (strstr(t->tag, "qexpr")) {
+        x = lval_qexpr();
+    }
 
     for (int i = 0; i < t->children_num; i++) {
         if (strcmp(t->children[i]->contents, "(") == 0) {
             continue;
         }
         if (strcmp(t->children[i]->contents, ")") == 0) {
+            continue;
+        }
+        if (strcmp(t->children[i]->contents, "{") == 0) {
+            continue;
+        }
+        if (strcmp(t->children[i]->contents, "}") == 0) {
             continue;
         }
         if (strcmp(t->children[i]->tag, "regex") == 0) {
@@ -119,11 +138,11 @@ lval_take(struct lval* v, int index) {
 
 struct lval*
 lval_pop(struct lval* v, int index) {
-    if (v->type != LVAL_SEXPR) {
-        return lval_err("Value is not a S-expr");
+    if (v->type != LVAL_SEXPR && v->type != LVAL_QEXPR) {
+        return lval_err("Value is neither a S-expr nor a Q-expr");
     }
     if (index >= v->count) {
-        return lval_err("S-expression does not have so many sub expr");
+        return lval_err("{Q,S}-expression does not have so many sub expr");
     }
     struct lval* ans = v->cell[index];
 
@@ -163,7 +182,7 @@ lval_eval_sexpr(struct lval* v) {
         return lval_err("S-expression does not start with symbol !");
     }
 
-    struct lval* result = builtin_op(v, f->sym);
+    struct lval* result = builtin(v, f->sym);
     lval_del(f);
     return result;
 }
@@ -193,6 +212,10 @@ lval_print(struct lval* v) {
 
         case LVAL_SEXPR:
             lval_expr_print(v, '(', ')');
+            break;
+
+        case LVAL_QEXPR:
+            lval_expr_print(v, '{', '}');
             break;
     }
 }

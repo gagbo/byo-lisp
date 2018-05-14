@@ -1,10 +1,10 @@
 #ifndef LVAL_H_
 #define LVAL_H_
 
-#include "mpc.h"
 #include "evaluation.h"
+#include "mpc.h"
 
-enum { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_SEXPR };
+enum { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_SEXPR, LVAL_QEXPR };
 enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 struct lval {
@@ -29,6 +29,9 @@ struct lval* lval_sym(char* symbol);
 
 /* Create a new lval from an empty sexpr */
 struct lval* lval_sexpr();
+
+/* Create a new lval from an empty qexpr */
+struct lval* lval_qexpr();
 
 /* Free an lval */
 void lval_del(struct lval* v);

@@ -13,20 +13,25 @@ main(int argc, char** argv) {
     mpc_parser_t* Number = mpc_new("number");
     mpc_parser_t* Operator = mpc_new("symbol");
     mpc_parser_t* SExpr = mpc_new("sexpr");
+    mpc_parser_t* QExpr = mpc_new("qexpr");
     mpc_parser_t* Expr = mpc_new("expr");
     mpc_parser_t* Lispy = mpc_new("lispy");
 
     mpca_lang(MPCA_LANG_DEFAULT,
               "                                                          \
-                number   : /[-]?([0-9]*[.])?[0-9]+([eE]?[+-]?[0-9]+)?/ ;  \
-                symbol   : '+' | '-' | '*' | '/' | '%' | /floor/ ;       \
+                number   : /[-]?([0-9]*[.])?[0-9]+([eE]?[+-]?[0-9]+)?/ ; \
+                symbol   : '+' | '-' | '*' | '/' | '%' |                 \
+                           \"floor\" | \"list\"  | \"head\" | \"join\" | \
+                           \"eval\"  | \"tail\"  | \"cons\" | \"len\"  | \
+                           \"init\" ;                                    \
                 sexpr    : '(' <expr>* ')' ;                             \
-                expr     : <number> | <symbol> | <sexpr> ;               \
+                qexpr    : '{' <expr>* '}' ;                             \
+                expr     : <number> | <symbol> | <sexpr> | <qexpr> ;     \
                 lispy    : /^/ <expr>* /$/ ;                             \
               ",
-              Number, Operator, SExpr, Expr, Lispy);
+              Number, Operator, SExpr, QExpr, Expr, Lispy);
 
-    puts("Lispy Version 0.0.0.0.4");
+    puts("Lispy Version 0.0.0.1.0");
     puts("Press Ctrl+C to exit\n");
 
     while (1) {
@@ -48,6 +53,6 @@ main(int argc, char** argv) {
         free(input);
     }
 
-    mpc_cleanup(5, Number, Operator, SExpr, Expr, Lispy);
+    mpc_cleanup(6, Number, Operator, SExpr, QExpr, Expr, Lispy);
     return EXIT_SUCCESS;
 }
