@@ -1,14 +1,17 @@
-#include "lval.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "lval.h"
 
-static struct lval* lval_eval_sexpr(struct lval* v);
+#include "lenv.h"
+
+static struct lval* lval_eval_sexpr(struct lenv* e, struct lval* v);
 
 struct lval*
 lval_num(double x) {
     struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
     v->type = LVAL_NUM;
     v->num = x;
     return v;
@@ -17,6 +20,7 @@ lval_num(double x) {
 struct lval*
 lval_err(char* message) {
     struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
     v->type = LVAL_ERR;
     v->err = strdup(message);
     return v;
@@ -25,14 +29,25 @@ lval_err(char* message) {
 struct lval*
 lval_sym(char* symbol) {
     struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
     v->type = LVAL_SYM;
     v->sym = strdup(symbol);
     return v;
 }
 
 struct lval*
+lval_fun(lbuiltin fun) {
+    struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
+    v->type = LVAL_FUN;
+    v->fun = fun;
+    return v;
+}
+
+struct lval*
 lval_sexpr() {
     struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
     v->type = LVAL_SEXPR;
     v->count = 0;
     v->cell = NULL;
@@ -42,16 +57,50 @@ lval_sexpr() {
 struct lval*
 lval_qexpr() {
     struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
     v->type = LVAL_QEXPR;
     v->count = 0;
     v->cell = NULL;
     return v;
 }
 
+struct lval*
+lval_copy(struct lval* rhs) {
+    struct lval* x = malloc(sizeof(struct lval));
+    assert(x);
+
+    x->type = rhs->type;
+
+    switch (rhs->type) {
+        case LVAL_FUN:
+            x->fun = rhs->fun;
+            break;
+        case LVAL_NUM:
+            x->num = rhs->num;
+            break;
+        case LVAL_ERR:
+            x->err = strdup(rhs->err);
+            break;
+        case LVAL_SYM:
+            x->sym = strdup(rhs->sym);
+            break;
+        case LVAL_SEXPR:
+        case LVAL_QEXPR:
+            x->count = rhs->count;
+            x->cell = malloc(sizeof(struct lval*) * x->count);
+            for (int i = 0; i < x->count; ++i) {
+                x->cell[i] = lval_copy(rhs->cell[i]);
+            }
+            break;
+    }
+    return x;
+}
+
 void
 lval_del(struct lval* v) {
     switch (v->type) {
         case LVAL_NUM:
+        case LVAL_FUN:
             break;
         case LVAL_ERR:
             free(v->err);
@@ -156,9 +205,9 @@ lval_pop(struct lval* v, int index) {
 }
 
 static struct lval*
-lval_eval_sexpr(struct lval* v) {
+lval_eval_sexpr(struct lenv* e, struct lval* v) {
     for (int i = 0; i < v->count; i++) {
-        v->cell[i] = lval_eval(v->cell[i]);
+        v->cell[i] = lval_eval(e, v->cell[i]);
     }
 
     for (int i = 0; i < v->count; ++i) {
@@ -176,21 +225,27 @@ lval_eval_sexpr(struct lval* v) {
     }
 
     struct lval* f = lval_pop(v, 0);
-    if (f->type != LVAL_SYM) {
+    if (f->type != LVAL_FUN) {
         lval_del(f);
         lval_del(v);
-        return lval_err("S-expression does not start with symbol !");
+        return lval_err("S-expression does not start with a function !");
     }
 
-    struct lval* result = builtin(v, f->sym);
+    struct lval* result = f->fun(e, v);
     lval_del(f);
     return result;
 }
 
 struct lval*
-lval_eval(struct lval* v) {
+lval_eval(struct lenv* e, struct lval* v) {
+    if (v->type == LVAL_SYM) {
+        struct lval* x = lenv_get(e, v);
+        lval_del(v);
+        return x;
+    }
+
     if (v->type == LVAL_SEXPR) {
-        return lval_eval_sexpr(v);
+        return lval_eval_sexpr(e, v);
     }
     return v;
 }
@@ -216,6 +271,10 @@ lval_print(struct lval* v) {
 
         case LVAL_QEXPR:
             lval_expr_print(v, '{', '}');
+            break;
+
+        case LVAL_FUN:
+            printf("<function>");
             break;
     }
 }

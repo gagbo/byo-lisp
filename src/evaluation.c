@@ -26,52 +26,41 @@
         return lval_err("Wrong number of arguments"); \
     }
 
-static struct lval* builtin_op(struct lval* a, char* op);
-static struct lval* builtin_head(struct lval* a);
-static struct lval* builtin_tail(struct lval* a);
-static struct lval* builtin_join(struct lval* a);
+static struct lval* builtin_op(struct lenv* e, struct lval* a, char* op);
 static struct lval* lval_join(struct lval* lhs, struct lval* rhs);
-static struct lval* builtin_eval(struct lval* a);
-static struct lval* builtin_list(struct lval* a);
-static struct lval* builtin_len(struct lval* a);
-static struct lval* builtin_cons(struct lval* a);
-static struct lval* builtin_init(struct lval* a);
 
 struct lval*
-builtin(struct lval* a, char* op) {
-    if (strcmp(op, "list") == 0) {
-        return builtin_list(a);
-    }
-    if (strcmp(op, "head") == 0) {
-        return builtin_head(a);
-    }
-    if (strcmp(op, "join") == 0) {
-        return builtin_join(a);
-    }
-    if (strcmp(op, "tail") == 0) {
-        return builtin_tail(a);
-    }
-    if (strcmp(op, "eval") == 0) {
-        return builtin_eval(a);
-    }
-    if (strcmp(op, "cons") == 0) {
-        return builtin_cons(a);
-    }
-    if (strcmp(op, "len") == 0) {
-        return builtin_len(a);
-    }
-    if (strcmp(op, "init") == 0) {
-        return builtin_init(a);
-    }
-    if (strcmp(op, "floor") == 0 || strstr("%*/+-", op)) {
-        return builtin_op(a, op);
-    }
-
-    return lval_err("Bad operation");
+builtin_add(struct lenv* e, struct lval* x) {
+    return builtin_op(e, x, "+");
 }
 
-static struct lval*
-builtin_head(struct lval* a) {
+struct lval*
+builtin_sub(struct lenv* e, struct lval* x) {
+    return builtin_op(e, x, "-");
+}
+
+struct lval*
+builtin_mul(struct lenv* e, struct lval* x) {
+    return builtin_op(e, x, "*");
+}
+
+struct lval*
+builtin_div(struct lenv* e, struct lval* x) {
+    return builtin_op(e, x, "/");
+}
+
+struct lval*
+builtin_mod(struct lenv* e, struct lval* x) {
+    return builtin_op(e, x, "%");
+}
+
+struct lval*
+builtin_floor(struct lenv* e, struct lval* x) {
+    return builtin_op(e, x, "floor");
+}
+
+struct lval*
+builtin_head(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS(a, 1);
     LASSERT(a, a->cell[0]->type == LVAL_QEXPR,
             "Function 'head' passed incorrect type !");
@@ -84,8 +73,8 @@ builtin_head(struct lval* a) {
     return v;
 }
 
-static struct lval*
-builtin_tail(struct lval* a) {
+struct lval*
+builtin_tail(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS(a, 1);
     LASSERT(a, a->cell[0]->type == LVAL_QEXPR,
             "Function 'tail' passed incorrect type !");
@@ -96,25 +85,25 @@ builtin_tail(struct lval* a) {
     return v;
 }
 
-static struct lval*
-builtin_list(struct lval* a) {
+struct lval*
+builtin_list(struct lenv* e, struct lval* a) {
     a->type = LVAL_QEXPR;
     return a;
 }
 
-static struct lval*
-builtin_eval(struct lval* a) {
+struct lval*
+builtin_eval(struct lenv* e, struct lval* a) {
     LASSERT(a, a->count == 1, "Function 'eval' passed too many arguments !");
     LASSERT(a, a->cell[0]->type == LVAL_QEXPR,
             "Function 'eval' passed incorrect types !");
 
     struct lval* x = lval_take(a, 0);
     x->type = LVAL_SEXPR;
-    return lval_eval(x);
+    return lval_eval(e, x);
 }
 
-static struct lval*
-builtin_join(struct lval* a) {
+struct lval*
+builtin_join(struct lenv* e, struct lval* a) {
     for (int i = 0; i < a->count; ++i) {
         if (a->cell[i]->type != LVAL_QEXPR) {
             lval_del(a);
@@ -142,10 +131,10 @@ lval_join(struct lval* lhs, struct lval* rhs) {
     return lhs;
 }
 
-static struct lval*
-builtin_cons(struct lval* a) {
+struct lval*
+builtin_cons(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS(a, 2);
-    struct lval* v = lval_eval(lval_pop(a, 0));
+    struct lval* v = lval_eval(e, lval_pop(a, 0));
     LASSERT(v, v->type == LVAL_NUM, "First argument is not evaluable !");
     LASSERT(a, a->cell[0]->type == LVAL_QEXPR,
             "Second argument is not a Q-Expr !");
@@ -156,8 +145,8 @@ builtin_cons(struct lval* a) {
     return ans;
 }
 
-static struct lval*
-builtin_len(struct lval* a) {
+struct lval*
+builtin_len(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS(a, 1);
     struct lval* ans = lval_qexpr();
     lval_add(ans, lval_num(a->cell[0]->count));
@@ -165,8 +154,8 @@ builtin_len(struct lval* a) {
     return ans;
 }
 
-static struct lval*
-builtin_init(struct lval* a) {
+struct lval*
+builtin_init(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS(a, 1);
     LASSERT_NON_EMPTY(a);
 
@@ -175,7 +164,7 @@ builtin_init(struct lval* a) {
 }
 
 static struct lval*
-builtin_op(struct lval* a, char* op) {
+builtin_op(struct lenv* e, struct lval* a, char* op) {
     if (a->type == LVAL_ERR) {
         return a;
     }
@@ -195,7 +184,7 @@ builtin_op(struct lval* a, char* op) {
     }
 
     while (a->count > 0) {
-        struct lval* y = lval_eval(lval_pop(a, 0));
+        struct lval* y = lval_eval(e, lval_pop(a, 0));
         if (strcmp(op, "+") == 0) {
             x->num += y->num;
         }

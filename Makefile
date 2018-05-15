@@ -8,7 +8,8 @@ SRC_DIR = src
 SOURCES = parsing.c \
           mpc.c \
           evaluation.c \
-          lval.c
+          lval.c \
+          lenv.c
 
 OBJECTS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 

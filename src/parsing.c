@@ -6,10 +6,11 @@
 
 #include "evaluation.h"
 #include "lval.h"
+#include "lenv.h"
 #include "mpc.h"
 
 int
-main(int argc, char** argv) {
+main() {
     mpc_parser_t* Number = mpc_new("number");
     mpc_parser_t* Operator = mpc_new("symbol");
     mpc_parser_t* SExpr = mpc_new("sexpr");
@@ -20,10 +21,7 @@ main(int argc, char** argv) {
     mpca_lang(MPCA_LANG_DEFAULT,
               "                                                          \
                 number   : /[-]?([0-9]*[.])?[0-9]+([eE]?[+-]?[0-9]+)?/ ; \
-                symbol   : '+' | '-' | '*' | '/' | '%' |                 \
-                           \"floor\" | \"list\"  | \"head\" | \"join\" | \
-                           \"eval\"  | \"tail\"  | \"cons\" | \"len\"  | \
-                           \"init\" ;                                    \
+                symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&%]+/;            \
                 sexpr    : '(' <expr>* ')' ;                             \
                 qexpr    : '{' <expr>* '}' ;                             \
                 expr     : <number> | <symbol> | <sexpr> | <qexpr> ;     \
@@ -34,6 +32,9 @@ main(int argc, char** argv) {
     puts("Lispy Version 0.0.0.1.0");
     puts("Press Ctrl+C to exit\n");
 
+    struct lenv* e = lenv_new();
+    lenv_add_builtins(e);
+
     while (1) {
         char* input = readline("lispy> ");
 
@@ -41,7 +42,7 @@ main(int argc, char** argv) {
 
         mpc_result_t r;
         if (mpc_parse("<stdin>", input, Lispy, &r)) {
-            struct lval* result = lval_eval(lval_read(r.output));
+            struct lval* result = lval_eval(e, lval_read(r.output));
             lval_println(result);
             mpc_ast_delete(r.output);
             lval_del(result);
@@ -52,6 +53,8 @@ main(int argc, char** argv) {
 
         free(input);
     }
+
+    lenv_del(e);
 
     mpc_cleanup(6, Number, Operator, SExpr, QExpr, Expr, Lispy);
     return EXIT_SUCCESS;
