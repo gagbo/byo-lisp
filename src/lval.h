@@ -36,7 +36,7 @@ struct lval* lval_err(char* fmt, ...);
 struct lval* lval_sym(char* symbol);
 
 /* Create a new lval from a function */
-struct lval* lval_fun(lbuiltin fun);
+struct lval* lval_fun(char* name, lbuiltin fun);
 
 /* Create a new lval from an empty sexpr */
 struct lval* lval_sexpr();

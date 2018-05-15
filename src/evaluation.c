@@ -242,11 +242,11 @@ builtin_def(struct lenv* e, struct lval* x) {
                 "Function 'def' cannot define non-symbol");
     }
 
-    LASSERT(x, syms->count == x->count -1,
+    LASSERT(x, syms->count == x->count - 1,
             "Function 'def' passed incorrect number of values to symbols");
 
-    for (int i = 0; i < syms->count ; ++i) {
-        lenv_put(e, syms->cell[i], x->cell[i+1]);
+    for (int i = 0; i < syms->count; ++i) {
+        lenv_put(e, syms->cell[i], x->cell[i + 1]);
     }
 
     lval_del(x);

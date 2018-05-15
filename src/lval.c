@@ -69,11 +69,12 @@ lval_sym(char* symbol) {
 }
 
 struct lval*
-lval_fun(lbuiltin fun) {
+lval_fun(char* name, lbuiltin fun) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
     v->type = LVAL_FUN;
     v->fun = fun;
+    v->sym = strdup(name);
     return v;
 }
 
@@ -107,6 +108,7 @@ lval_copy(struct lval* rhs) {
     switch (rhs->type) {
         case LVAL_FUN:
             x->fun = rhs->fun;
+            x->sym = strdup(rhs->sym);
             break;
         case LVAL_NUM:
             x->num = rhs->num;
@@ -133,12 +135,12 @@ void
 lval_del(struct lval* v) {
     switch (v->type) {
         case LVAL_NUM:
-        case LVAL_FUN:
             break;
         case LVAL_ERR:
             free(v->err);
             break;
         case LVAL_SYM:
+        case LVAL_FUN:
             free(v->sym);
             break;
         case LVAL_QEXPR:
@@ -307,7 +309,7 @@ lval_print(struct lval* v) {
             break;
 
         case LVAL_FUN:
-            printf("<function>");
+            printf("Function : %s", v->sym);
             break;
     }
 }

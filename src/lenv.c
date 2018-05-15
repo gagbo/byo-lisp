@@ -53,7 +53,7 @@ lenv_put(struct lenv* e, struct lval* k, struct lval* v) {
 
 void lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun) {
     struct lval* key = lval_sym(name);
-    struct lval* value = lval_fun(fun);
+    struct lval* value = lval_fun(name, fun);
     lenv_put(e, key, value);
     lval_del(key);
     lval_del(value);
