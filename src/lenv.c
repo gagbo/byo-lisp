@@ -75,4 +75,6 @@ void lenv_add_builtins(struct lenv* e){
     lenv_add_builtin(e, "len", builtin_len);
     lenv_add_builtin(e, "cons", builtin_cons);
     lenv_add_builtin(e, "init", builtin_init);
+
+    lenv_add_builtin(e, "def", builtin_def);
 }
