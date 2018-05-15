@@ -23,11 +23,14 @@ struct lval {
     struct lval** cell;
 };
 
+/* Return a string with human-readable type name */
+char* ltype_name(int t);
+
 /* Create a new lval from a number */
 struct lval* lval_num(double x);
 
 /* Create a new lval from an error */
-struct lval* lval_err(char* message);
+struct lval* lval_err(char* fmt, ...);
 
 /* Create a new lval from a symbol */
 struct lval* lval_sym(char* symbol);

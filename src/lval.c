@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,7 +7,29 @@
 
 #include "lenv.h"
 
+#define MAX_ERROR_LEN 512
+
 static struct lval* lval_eval_sexpr(struct lenv* e, struct lval* v);
+
+char*
+ltype_name(int t) {
+    switch (t) {
+        case LVAL_FUN:
+            return "Function";
+        case LVAL_NUM:
+            return "Number";
+        case LVAL_ERR:
+            return "Error";
+        case LVAL_SYM:
+            return "Symbol";
+        case LVAL_SEXPR:
+            return "S-Expression";
+        case LVAL_QEXPR:
+            return "Q-Expression";
+        default:
+            return "Unknown";
+    }
+}
 
 struct lval*
 lval_num(double x) {
@@ -18,11 +41,21 @@ lval_num(double x) {
 }
 
 struct lval*
-lval_err(char* message) {
+lval_err(char* fmt, ...) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
     v->type = LVAL_ERR;
-    v->err = strdup(message);
+
+    va_list va;
+    va_start(va, fmt);
+
+    v->err = malloc(MAX_ERROR_LEN);
+    vsnprintf(v->err, MAX_ERROR_LEN, fmt, va);
+    v->err[MAX_ERROR_LEN - 1] = '\0';
+
+    v->err = realloc(v->err, strlen(v->err) + 1);
+
+    va_end(va);
     return v;
 }
 

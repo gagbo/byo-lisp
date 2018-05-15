@@ -30,7 +30,7 @@ lenv_get(struct lenv* e, struct lval* k) {
         }
     }
 
-    return lval_err("Unbound symbol !");
+    return lval_err("Unbound symbol '%s' !", k->sym);
 }
 
 void

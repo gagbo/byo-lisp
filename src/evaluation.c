@@ -9,10 +9,11 @@
 #include "lenv.h"
 #include "mpc.h"
 
-#define LASSERT(args, cond, err) \
-    if (!(cond)) {               \
-        lval_del(args);          \
-        return lval_err(err);    \
+#define LASSERT(args, cond, fmt, ...)                    \
+    if (!(cond)) {                                       \
+        struct lval* err = lval_err(fmt, ##__VA_ARGS__); \
+        lval_del(args);                                  \
+        return err;                                      \
     }
 
 #define LASSERT_NON_EMPTY(args)            \
@@ -21,20 +22,20 @@
         return lval_err("Empty argument"); \
     }
 
-#define LASSERT_NUM_ARGS(args, c)                                      \
-    if (args->count != c) {                                            \
-        lval_del(args);                                                \
-        char buffer[300];                                              \
-        sprintf(buffer, "Wrong number of arguments (expected %i)", c); \
-        return lval_err(buffer);                                       \
+#define LASSERT_NUM_ARGS(args, c)                                          \
+    if (args->count != c) {                                                \
+        int saved_count = args->count;                                     \
+        lval_del(args);                                                    \
+        return lval_err("Wrong number of arguments. Got %i, Expected %i.", \
+                        saved_count, c);                                   \
     }
 
-#define LASSERT_TYPE(args, i, wanted_type)                \
-    if (args->cell[i]->type != wanted_type) {             \
-        lval_del(args);                                   \
-        char buffer[300];                                 \
-        sprintf(buffer, "Wrong type for argument %i", i); \
-        return lval_err(buffer);                          \
+#define LASSERT_TYPE(args, i, wanted_type)                                     \
+    if (args->cell[i]->type != wanted_type) {                                  \
+        int saved_type = args->cell[i]->type;                                  \
+        lval_del(args);                                                        \
+        return lval_err("Wrong type for argument %i. Got %s, Expected %s.", i, \
+                        ltype_name(saved_type), ltype_name(wanted_type));      \
     }
 
 static struct lval* builtin_op(struct lenv* e, struct lval* a, char* op);
@@ -73,8 +74,7 @@ builtin_floor(struct lenv* e, struct lval* x) {
 struct lval*
 builtin_head(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS(a, 1);
-    LASSERT(a, a->cell[0]->type == LVAL_QEXPR,
-            "Function 'head' passed incorrect type !");
+    LASSERT_TYPE(a, 0, LVAL_QEXPR);
     LASSERT_NON_EMPTY(a);
     (void)e;
 
@@ -88,8 +88,7 @@ builtin_head(struct lenv* e, struct lval* a) {
 struct lval*
 builtin_tail(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS(a, 1);
-    LASSERT(a, a->cell[0]->type == LVAL_QEXPR,
-            "Function 'tail' passed incorrect type !");
+    LASSERT_TYPE(a, 0, LVAL_QEXPR);
     LASSERT_NON_EMPTY(a);
     (void)e;
 
@@ -107,9 +106,8 @@ builtin_list(struct lenv* e, struct lval* a) {
 
 struct lval*
 builtin_eval(struct lenv* e, struct lval* a) {
-    LASSERT(a, a->count == 1, "Function 'eval' passed too many arguments !");
-    LASSERT(a, a->cell[0]->type == LVAL_QEXPR,
-            "Function 'eval' passed incorrect types !");
+    LASSERT_NUM_ARGS(a, 1);
+    LASSERT_TYPE(a, 0, LVAL_QEXPR);
 
     struct lval* x = lval_take(a, 0);
     x->type = LVAL_SEXPR;
@@ -197,6 +195,7 @@ builtin_op(struct lenv* e, struct lval* a, char* op) {
     }
 
     while (a->count > 0) {
+        LASSERT_TYPE(a, 0, LVAL_NUM);
         struct lval* y = lval_eval(e, lval_pop(a, 0));
         if (strcmp(op, "+") == 0) {
             x->num += y->num;
