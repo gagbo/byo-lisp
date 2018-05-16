@@ -9,6 +9,11 @@
  * since every operation is O(count). Implementing a proper hash table will
  * raise performance, and allow to compare the 2 classic implementations of hash
  * tables.
+ *
+ * - The first hash table (for all symbols) is mapping char* syms[x] -> struct
+ * lval* vals[x]
+ * - The second hash table (for builtins) is more like a set
+ * actually, with a char* key
  */
 struct lenv {
     int count;
