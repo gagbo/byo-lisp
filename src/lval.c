@@ -26,6 +26,8 @@ ltype_name(int t) {
             return "S-Expression";
         case LVAL_QEXPR:
             return "Q-Expression";
+        case LVAL_EXIT_REQ:
+            return "Exit request";
         default:
             return "Unknown";
     }
@@ -99,6 +101,25 @@ lval_qexpr() {
 }
 
 struct lval*
+lval_exit_req(char* fmt, ...) {
+    struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
+    v->type = LVAL_EXIT_REQ;
+
+    va_list va;
+    va_start(va, fmt);
+
+    v->err = malloc(MAX_ERROR_LEN);
+    vsnprintf(v->err, MAX_ERROR_LEN, fmt, va);
+    v->err[MAX_ERROR_LEN - 1] = '\0';
+
+    v->err = realloc(v->err, strlen(v->err) + 1);
+
+    va_end(va);
+    return v;
+}
+
+struct lval*
 lval_copy(struct lval* rhs) {
     struct lval* x = malloc(sizeof(struct lval));
     assert(x);
@@ -114,6 +135,7 @@ lval_copy(struct lval* rhs) {
             x->num = rhs->num;
             break;
         case LVAL_ERR:
+        case LVAL_EXIT_REQ:
             x->err = strdup(rhs->err);
             break;
         case LVAL_SYM:
@@ -137,6 +159,7 @@ lval_del(struct lval* v) {
         case LVAL_NUM:
             break;
         case LVAL_ERR:
+        case LVAL_EXIT_REQ:
             free(v->err);
             break;
         case LVAL_SYM:
@@ -294,6 +317,10 @@ lval_print(struct lval* v) {
 
         case LVAL_ERR:
             printf("Error : %s", v->err);
+            break;
+
+        case LVAL_EXIT_REQ:
+            printf("Exit request : %s", v->err);
             break;
 
         case LVAL_SYM:

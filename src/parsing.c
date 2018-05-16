@@ -5,8 +5,8 @@
 #include <histedit.h>
 
 #include "evaluation.h"
-#include "lval.h"
 #include "lenv.h"
+#include "lval.h"
 #include "mpc.h"
 
 int
@@ -45,6 +45,10 @@ main() {
             struct lval* result = lval_eval(e, lval_read(r.output));
             lval_println(result);
             mpc_ast_delete(r.output);
+            if (result->type == LVAL_EXIT_REQ) {
+                lval_del(result);
+                break;
+            }
             lval_del(result);
         } else {
             mpc_err_print(r.error);

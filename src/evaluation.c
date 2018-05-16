@@ -252,3 +252,10 @@ builtin_def(struct lenv* e, struct lval* x) {
     lval_del(x);
     return lval_sexpr();
 }
+
+struct lval*
+builtin_exit(struct lenv* e, struct lval* x) {
+    (void)e;
+    lval_del(x);
+    return lval_exit_req("exit command");
+}

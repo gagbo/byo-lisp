@@ -8,7 +8,7 @@ struct lval;
 struct lenv;
 typedef struct lval*(*lbuiltin)(struct lenv*, struct lval*);
 
-enum { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR };
+enum { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR, LVAL_EXIT_REQ };
 enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 struct lval {
@@ -43,6 +43,9 @@ struct lval* lval_sexpr();
 
 /* Create a new lval from an empty qexpr */
 struct lval* lval_qexpr();
+
+/* Create a new lval from an exit request */
+struct lval* lval_exit_req(char* fmt, ...);
 
 /* Free an lval */
 void lval_del(struct lval* v);
