@@ -1,6 +1,7 @@
 #ifndef LENV_H_
 #define LENV_H_
 
+#include <stdbool.h>
 #include "lval.h"
 
 /** TODO : Reimplement as a hash table
@@ -11,6 +12,8 @@
  */
 struct lenv {
     int count;
+    int count_bi;
+    char** builtins;
     char** syms;
     struct lval** vals;
 };
@@ -31,5 +34,7 @@ void lenv_put(struct lenv* e, struct lval* k, struct lval* v);
 void lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun);
 
 void lenv_add_builtins(struct lenv* e);
+
+bool lenv_is_builtin(struct lenv* e, struct lval* k);
 
 #endif /* LENV_H_ */

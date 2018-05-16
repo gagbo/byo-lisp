@@ -1,6 +1,8 @@
 #include <string.h>
-#include "lenv.h"
 #include "evaluation.h"
+#include "lenv.h"
+
+static void lenv_put_builtin(struct lenv* e, struct lval* k);
 
 struct lenv*
 lenv_new() {
@@ -8,6 +10,8 @@ lenv_new() {
     e->count = 0;
     e->syms = NULL;
     e->vals = NULL;
+    e->count_bi = 0;
+    e->builtins = NULL;
     return e;
 }
 
@@ -17,8 +21,12 @@ lenv_del(struct lenv* e) {
         free(e->syms[i]);
         lval_del(e->vals[i]);
     }
+    for (int i = 0; i < e->count_bi; ++i) {
+        free(e->builtins[i]);
+    }
     free(e->syms);
     free(e->vals);
+    free(e->builtins);
     free(e);
 }
 
@@ -51,15 +59,42 @@ lenv_put(struct lenv* e, struct lval* k, struct lval* v) {
     e->syms[e->count - 1] = strdup(k->sym);
 }
 
-void lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun) {
+void
+lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun) {
     struct lval* key = lval_sym(name);
     struct lval* value = lval_fun(name, fun);
     lenv_put(e, key, value);
+    lenv_put_builtin(e, key);
     lval_del(key);
     lval_del(value);
 }
 
-void lenv_add_builtins(struct lenv* e){
+static void
+lenv_put_builtin(struct lenv* e, struct lval* k) {
+    for (int i = 0; i < e->count_bi; ++i) {
+        if (strcmp(e->builtins[i], k->sym) == 0) {
+            return;
+        }
+    }
+
+    e->count_bi++;
+    e->builtins = realloc(e->builtins, sizeof(char*) * e->count_bi);
+
+    e->builtins[e->count_bi - 1] = strdup(k->sym);
+}
+
+bool
+lenv_is_builtin(struct lenv* e, struct lval* k) {
+    for (int i = 0; i < e->count_bi; ++i) {
+        if (strcmp(e->builtins[i], k->sym) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void
+lenv_add_builtins(struct lenv* e) {
     lenv_add_builtin(e, "+", builtin_add);
     lenv_add_builtin(e, "-", builtin_sub);
     lenv_add_builtin(e, "*", builtin_mul);

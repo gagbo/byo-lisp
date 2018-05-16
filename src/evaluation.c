@@ -240,6 +240,12 @@ builtin_def(struct lenv* e, struct lval* x) {
     for (int i = 0; i < syms->count; ++i) {
         LASSERT(x, syms->cell[i]->type == LVAL_SYM,
                 "Function 'def' cannot define non-symbol");
+        if (lenv_is_builtin(e, syms->cell[i])) {
+            struct lval* err =
+                lval_err("%s already defined as builtin", syms->cell[i]->sym);
+            lval_del(x);
+            return err;
+        }
     }
 
     LASSERT(x, syms->count == x->count - 1,
