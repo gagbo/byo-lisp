@@ -71,11 +71,11 @@ lval_sym(char* symbol) {
 }
 
 struct lval*
-lval_fun(char* name, lbuiltin fun) {
+lval_fun(char* name, lbuiltin builtin) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
     v->type = LVAL_FUN;
-    v->fun = fun;
+    v->builtin = builtin;
     v->sym = strdup(name);
     return v;
 }
@@ -128,7 +128,7 @@ lval_copy(struct lval* rhs) {
 
     switch (rhs->type) {
         case LVAL_FUN:
-            x->fun = rhs->fun;
+            x->builtin = rhs->builtin;
             x->sym = strdup(rhs->sym);
             break;
         case LVAL_NUM:
@@ -289,7 +289,7 @@ lval_eval_sexpr(struct lenv* e, struct lval* v) {
         return lval_err("S-expression does not start with a function !");
     }
 
-    struct lval* result = f->fun(e, v);
+    struct lval* result = f->builtin(e, v);
     lval_del(f);
     return result;
 }

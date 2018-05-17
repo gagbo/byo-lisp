@@ -13,12 +13,19 @@ enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 struct lval {
     int type;
-    double num;
 
+    /* Basic */
+    double num;
     char* err;
     char* sym;
-    lbuiltin fun;
 
+    /* Function */
+    lbuiltin builtin;
+    struct lenv* env;
+    struct lval* formals;
+    struct lval* body;
+
+    /* X-Expression */
     int count;
     struct lval** cell;
 };
@@ -36,7 +43,7 @@ struct lval* lval_err(char* fmt, ...);
 struct lval* lval_sym(char* symbol);
 
 /* Create a new lval from a function */
-struct lval* lval_fun(char* name, lbuiltin fun);
+struct lval* lval_fun(char* name, lbuiltin builtin);
 
 /* Create a new lval from an empty sexpr */
 struct lval* lval_sexpr();
