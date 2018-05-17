@@ -42,6 +42,7 @@
 
 static struct lval* builtin_op(struct lenv* e, struct lval* a, char* op);
 static struct lval* lval_join(struct lval* lhs, struct lval* rhs);
+static struct lval* builtin_var(struct lenv* e, struct lval* a, char* func);
 
 struct lval*
 builtin_add(struct lenv* e, struct lval* x) {
@@ -234,27 +235,39 @@ builtin_op(struct lenv* e, struct lval* a, char* op) {
 }
 
 struct lval*
-builtin_def(struct lenv* e, struct lval* x) {
-    LASSERT_TYPE("def", x, 0, LVAL_QEXPR);
+builtin_def(struct lenv* e, struct lval* a) {
+    return builtin_var(e, a, "def");
+}
+
+struct lval*
+builtin_put(struct lenv* e, struct lval* a) {
+    return builtin_var(e, a, "=");
+}
+
+static struct lval*
+builtin_var(struct lenv* e, struct lval* x, char* func) {
+    LASSERT_TYPE(func, x, 0, LVAL_QEXPR);
 
     struct lval* syms = x->cell[0];
 
     for (int i = 0; i < syms->count; ++i) {
         LASSERT(x, syms->cell[i]->type == LVAL_SYM,
-                "Function 'def' cannot define non-symbol");
-        if (lenv_is_builtin(e, syms->cell[i])) {
-            struct lval* err =
-                lval_err("%s already defined as builtin", syms->cell[i]->sym);
-            lval_del(x);
-            return err;
-        }
+                "Function '%s' cannot define non-symbol. Got %s, Expected %s.",
+                func, ltype_name(syms->cell[i]->type), ltype_name(LVAL_SYM));
     }
 
     LASSERT(x, syms->count == x->count - 1,
-            "Function 'def' passed incorrect number of values to symbols");
+            "Function '%s' passed incorrect number of values to symbols. Got "
+            "%i, Expected%i",
+            func, syms->count, x->count - 1);
 
     for (int i = 0; i < syms->count; ++i) {
-        lenv_put(e, syms->cell[i], x->cell[i + 1]);
+        if (strcmp(func, "def") == 0) {
+            lenv_def(e, syms->cell[i], x->cell[i + 1]);
+        }
+        if (strcmp(func, "=") == 0) {
+            lenv_put(e, syms->cell[i], x->cell[i + 1]);
+        }
     }
 
     lval_del(x);
@@ -266,4 +279,24 @@ builtin_exit(struct lenv* e, struct lval* x) {
     (void)e;
     lval_del(x);
     return lval_exit_req("exit command");
+}
+
+struct lval*
+builtin_lambda(struct lenv* e, struct lval* a) {
+    (void)e;
+    LASSERT_NUM_ARGS("\\", a, 2);
+    LASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
+    LASSERT_TYPE("\\", a, 1, LVAL_QEXPR);
+
+    for (int i = 0; i < a->cell[0]->count; ++i) {
+        LASSERT(a, (a->cell[0]->cell[i]->type == LVAL_SYM),
+                "Cannot define non-symbol. Got %s, Expected %s.",
+                ltype_name(a->cell[0]->cell[i]->type), ltype_name(LVAL_SYM));
+    }
+
+    struct lval* formals = lval_pop(a, 0);
+    struct lval* body = lval_pop(a, 0);
+    lval_del(a);
+
+    return lval_lambda(formals, body);
 }

@@ -23,6 +23,9 @@ struct lval* builtin_cons(struct lenv* e, struct lval* x);
 struct lval* builtin_init(struct lenv* e, struct lval* x);
 
 struct lval* builtin_def(struct lenv* e, struct lval* x);
+struct lval* builtin_put(struct lenv* e, struct lval* x);
 struct lval* builtin_exit(struct lenv* e, struct lval* x);
+
+struct lval* builtin_lambda(struct lenv* e, struct lval* x);
 
 #endif  // EVALUATION_H_

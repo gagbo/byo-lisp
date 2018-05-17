@@ -2,16 +2,28 @@
 #include "evaluation.h"
 #include "lenv.h"
 
-static void lenv_put_builtin(struct lenv* e, struct lval* k);
-
 struct lenv*
 lenv_new() {
     struct lenv* e = malloc(sizeof(struct lenv));
+    e->par = NULL;
     e->count = 0;
     e->syms = NULL;
     e->vals = NULL;
-    e->count_bi = 0;
-    e->builtins = NULL;
+    return e;
+}
+
+struct lenv*
+lenv_copy(struct lenv* rhs) {
+    struct lenv* e = malloc(sizeof(struct lenv));
+    e->par = rhs->par;
+    e->count = rhs->count;
+    e->syms = malloc(sizeof(char*) * e->count);
+    e->vals = malloc(sizeof(struct lval*) * e->count);
+
+    for (int i = 0; i < e->count; ++i) {
+        e->syms[i] = strdup(rhs->syms[i]);
+        e->vals[i] = lval_copy(rhs->vals[i]);
+    }
     return e;
 }
 
@@ -21,12 +33,8 @@ lenv_del(struct lenv* e) {
         free(e->syms[i]);
         lval_del(e->vals[i]);
     }
-    for (int i = 0; i < e->count_bi; ++i) {
-        free(e->builtins[i]);
-    }
     free(e->syms);
     free(e->vals);
-    free(e->builtins);
     free(e);
 }
 
@@ -38,7 +46,20 @@ lenv_get(struct lenv* e, struct lval* k) {
         }
     }
 
+    if (e->par) {
+        return lenv_get(e->par, k);
+    }
     return lval_err("Unbound symbol '%s' !", k->sym);
+}
+
+bool
+lenv_is_builtin(struct lenv* e, struct lval* k) {
+    struct lval* target = lenv_get(e, k);
+    if (target->type != LVAL_FUN) {
+        return false;
+    }
+
+    return (target->builtin != NULL);
 }
 
 void
@@ -60,37 +81,21 @@ lenv_put(struct lenv* e, struct lval* k, struct lval* v) {
 }
 
 void
+lenv_def(struct lenv* e, struct lval* k, struct lval* v) {
+    while (e->par) { e = e->par; }
+
+    lenv_put(e,k,v);
+}
+
+void
 lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun) {
     struct lval* key = lval_sym(name);
+    /* lval_fun is the function that creates builtin bindings */
+    /* TODO : Rename lval_fun to lval_builtin everywhere */
     struct lval* value = lval_fun(name, fun);
     lenv_put(e, key, value);
-    lenv_put_builtin(e, key);
     lval_del(key);
     lval_del(value);
-}
-
-static void
-lenv_put_builtin(struct lenv* e, struct lval* k) {
-    for (int i = 0; i < e->count_bi; ++i) {
-        if (strcmp(e->builtins[i], k->sym) == 0) {
-            return;
-        }
-    }
-
-    e->count_bi++;
-    e->builtins = realloc(e->builtins, sizeof(char*) * e->count_bi);
-
-    e->builtins[e->count_bi - 1] = strdup(k->sym);
-}
-
-bool
-lenv_is_builtin(struct lenv* e, struct lval* k) {
-    for (int i = 0; i < e->count_bi; ++i) {
-        if (strcmp(e->builtins[i], k->sym) == 0) {
-            return true;
-        }
-    }
-    return false;
 }
 
 void
@@ -112,5 +117,8 @@ lenv_add_builtins(struct lenv* e) {
     lenv_add_builtin(e, "init", builtin_init);
 
     lenv_add_builtin(e, "def", builtin_def);
+    lenv_add_builtin(e, "=", builtin_put);
     lenv_add_builtin(e, "exit", builtin_exit);
+
+    lenv_add_builtin(e, "\\", builtin_lambda);
 }

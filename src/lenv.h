@@ -12,13 +12,10 @@
  *
  * - The first hash table (for all symbols) is mapping char* syms[x] -> struct
  * lval* vals[x]
- * - The second hash table (for builtins) is more like a set
- * actually, with a char* key
  */
 struct lenv {
+    struct lenv* par;
     int count;
-    int count_bi;
-    char** builtins;
     char** syms;
     struct lval** vals;
 };
@@ -26,14 +23,20 @@ struct lenv {
 /* Create an environment */
 struct lenv* lenv_new();
 
+/* Create a copy of an environment */
+struct lenv* lenv_copy(struct lenv* rhs);
+
 /* Delete an environment */
 void lenv_del(struct lenv* e);
 
 /* Get a value in environment, return lval_err if not found */
 struct lval* lenv_get(struct lenv* e, struct lval* k);
 
-/* Put a value in environment */
+/* Put a value in local environment */
 void lenv_put(struct lenv* e, struct lval* k, struct lval* v);
+
+/* Put value in global environment */
+void lenv_def(struct lenv* e, struct lval* k, struct lval* v);
 
 /* Initialization with builtins */
 void lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun);

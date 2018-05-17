@@ -81,6 +81,64 @@ lval_fun(char* name, lbuiltin builtin) {
 }
 
 struct lval*
+lval_lambda(struct lval* formals, struct lval* body) {
+    struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
+    v->type = LVAL_FUN;
+
+    v->builtin = NULL;
+
+    v->env = lenv_new();
+    v->formals = formals;
+    v->body = body;
+
+    return v;
+}
+
+struct lval* lval_call(struct lenv* e, struct lval* f, struct lval* a) {
+    if (f->type != LVAL_FUN) {
+        struct lval* err = lval_err("Not evalutating a function");
+        lval_del(a);
+        return err;
+    }
+
+    /* If builtin, return the result directly */
+    if (f->builtin) {return f->builtin(e, a); }
+
+    int given = a->count;
+    int total = f->formals->count;
+
+    while (a->count >0) {
+        if (f->formals->count == 0) {
+            lval_del(a);
+            return lval_err("Function passed too many arguments. Got %i, Expected %i",
+                    given, total);
+        }
+
+        /* Bind the argument value to the function formal symbol */
+        struct lval* sym = lval_pop(f->formals, 0);
+        struct lval* bind_val = lval_pop(a, 0);
+
+        lenv_put(f->env, sym, bind_val);
+
+        /* Delete the popped lvals */
+        lval_del(sym);
+        lval_del(bind_val);
+    }
+
+    lval_del(a);
+
+    /* If all function arguments have been bound then evaluate */
+    if (f->formals->count == 0) {
+    f->env->par = e;
+    return builtin_eval(f->env, lval_add(lval_sexpr(), lval_copy(f->body)));}
+    else {
+        /* Return a copy of the function with partially bound arguments */
+        return lval_copy(f);
+    }
+}
+
+struct lval*
 lval_sexpr() {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
@@ -128,8 +186,15 @@ lval_copy(struct lval* rhs) {
 
     switch (rhs->type) {
         case LVAL_FUN:
-            x->builtin = rhs->builtin;
-            x->sym = strdup(rhs->sym);
+            if (rhs->builtin) {
+                x->builtin = rhs->builtin;
+                x->sym = strdup(rhs->sym);
+            } else {
+                x->builtin = NULL;
+                x->env = lenv_copy(rhs->env);
+                x->formals = lval_copy(rhs->formals);
+                x->body = lval_copy(rhs->body);
+            }
             break;
         case LVAL_NUM:
             x->num = rhs->num;
@@ -163,7 +228,6 @@ lval_del(struct lval* v) {
             free(v->err);
             break;
         case LVAL_SYM:
-        case LVAL_FUN:
             free(v->sym);
             break;
         case LVAL_QEXPR:
@@ -172,6 +236,15 @@ lval_del(struct lval* v) {
                 lval_del(v->cell[i]);
             }
             free(v->cell);
+            break;
+        case LVAL_FUN:
+            if (v->builtin) {
+                free(v->sym);
+            } else {
+                lenv_del(v->env);
+                lval_del(v->formals);
+                lval_del(v->body);
+            }
             break;
     }
 
@@ -289,7 +362,7 @@ lval_eval_sexpr(struct lenv* e, struct lval* v) {
         return lval_err("S-expression does not start with a function !");
     }
 
-    struct lval* result = f->builtin(e, v);
+    struct lval* result = lval_call(e, f, v);
     lval_del(f);
     return result;
 }
@@ -336,7 +409,15 @@ lval_print(struct lval* v) {
             break;
 
         case LVAL_FUN:
-            printf("Function : %s", v->sym);
+            if (v->builtin) {
+                printf("<builtin> : %s", v->sym);
+            } else {
+                printf("(\\ ");
+                lval_print(v->formals);
+                putchar(' ');
+                lval_print(v->body);
+                putchar(')');
+            }
             break;
     }
 }

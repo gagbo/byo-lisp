@@ -42,8 +42,14 @@ struct lval* lval_err(char* fmt, ...);
 /* Create a new lval from a symbol */
 struct lval* lval_sym(char* symbol);
 
-/* Create a new lval from a function */
+/* Create a new lval from a builtin function */
 struct lval* lval_fun(char* name, lbuiltin builtin);
+
+/* Create a new lval from a lambda function */
+struct lval* lval_lambda(struct lval* formals, struct lval* body);
+
+/* Create a new lval from calling a lambda function */
+struct lval* lval_call(struct lenv* e, struct lval* f, struct lval* a);
 
 /* Create a new lval from an empty sexpr */
 struct lval* lval_sexpr();
