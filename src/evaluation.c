@@ -16,26 +16,28 @@
         return err;                                      \
     }
 
-#define LASSERT_NON_EMPTY(args)            \
-    if (args->cell[0]->count == 0) {       \
-        lval_del(args);                    \
-        return lval_err("Empty argument"); \
+#define LASSERT_NON_EMPTY(name, args)                 \
+    if (args->cell[0]->count == 0) {                  \
+        lval_del(args);                               \
+        return lval_err("%s : Empty argument", name); \
     }
 
-#define LASSERT_NUM_ARGS(args, c)                                          \
-    if (args->count != c) {                                                \
-        int saved_count = args->count;                                     \
-        lval_del(args);                                                    \
-        return lval_err("Wrong number of arguments. Got %i, Expected %i.", \
-                        saved_count, c);                                   \
+#define LASSERT_NUM_ARGS(name, args, c)                                   \
+    if (args->count != c) {                                               \
+        int saved_count = args->count;                                    \
+        lval_del(args);                                                   \
+        return lval_err(                                                  \
+            "%s : Wrong number of arguments. Got %i, Expected %i.", name, \
+            saved_count, c);                                              \
     }
 
-#define LASSERT_TYPE(args, i, wanted_type)                                     \
-    if (args->cell[i]->type != wanted_type) {                                  \
-        int saved_type = args->cell[i]->type;                                  \
-        lval_del(args);                                                        \
-        return lval_err("Wrong type for argument %i. Got %s, Expected %s.", i, \
-                        ltype_name(saved_type), ltype_name(wanted_type));      \
+#define LASSERT_TYPE(name, args, i, wanted_type)                              \
+    if (args->cell[i]->type != wanted_type) {                                 \
+        int saved_type = args->cell[i]->type;                                 \
+        lval_del(args);                                                       \
+        return lval_err(                                                      \
+            "%s : Wrong type for argument %i. Got %s, Expected %s.", name, i, \
+            ltype_name(saved_type), ltype_name(wanted_type));                 \
     }
 
 static struct lval* builtin_op(struct lenv* e, struct lval* a, char* op);
@@ -73,9 +75,9 @@ builtin_floor(struct lenv* e, struct lval* x) {
 
 struct lval*
 builtin_head(struct lenv* e, struct lval* a) {
-    LASSERT_NUM_ARGS(a, 1);
-    LASSERT_TYPE(a, 0, LVAL_QEXPR);
-    LASSERT_NON_EMPTY(a);
+    LASSERT_NUM_ARGS("head", a, 1);
+    LASSERT_TYPE("head", a, 0, LVAL_QEXPR);
+    LASSERT_NON_EMPTY("head", a);
     (void)e;
 
     struct lval* v = lval_take(a, 0);
@@ -87,9 +89,9 @@ builtin_head(struct lenv* e, struct lval* a) {
 
 struct lval*
 builtin_tail(struct lenv* e, struct lval* a) {
-    LASSERT_NUM_ARGS(a, 1);
-    LASSERT_TYPE(a, 0, LVAL_QEXPR);
-    LASSERT_NON_EMPTY(a);
+    LASSERT_NUM_ARGS("tail", a, 1);
+    LASSERT_TYPE("tail", a, 0, LVAL_QEXPR);
+    LASSERT_NON_EMPTY("tail", a);
     (void)e;
 
     struct lval* v = lval_take(a, 0); /* Here v is the actual {QEXPR} arg */
@@ -106,8 +108,8 @@ builtin_list(struct lenv* e, struct lval* a) {
 
 struct lval*
 builtin_eval(struct lenv* e, struct lval* a) {
-    LASSERT_NUM_ARGS(a, 1);
-    LASSERT_TYPE(a, 0, LVAL_QEXPR);
+    LASSERT_NUM_ARGS("eval", a, 1);
+    LASSERT_TYPE("eval", a, 0, LVAL_QEXPR);
 
     struct lval* x = lval_take(a, 0);
     x->type = LVAL_SEXPR;
@@ -117,7 +119,7 @@ builtin_eval(struct lenv* e, struct lval* a) {
 struct lval*
 builtin_join(struct lenv* e, struct lval* a) {
     for (int i = 0; i < a->count; ++i) {
-        LASSERT_TYPE(a, i, LVAL_QEXPR);
+        LASSERT_TYPE("join", a, i, LVAL_QEXPR);
     }
     (void)e;
 
@@ -143,10 +145,10 @@ lval_join(struct lval* lhs, struct lval* rhs) {
 
 struct lval*
 builtin_cons(struct lenv* e, struct lval* a) {
-    LASSERT_NUM_ARGS(a, 2);
+    LASSERT_NUM_ARGS("cons", a, 2);
     struct lval* v = lval_eval(e, lval_pop(a, 0));
     LASSERT(v, v->type == LVAL_NUM, "First argument is not evaluable !");
-    LASSERT_TYPE(a, 0, LVAL_QEXPR);
+    LASSERT_TYPE("cons", a, 0, LVAL_QEXPR);
 
     struct lval* ans = lval_qexpr();
     lval_add(ans, v);
@@ -156,7 +158,7 @@ builtin_cons(struct lenv* e, struct lval* a) {
 
 struct lval*
 builtin_len(struct lenv* e, struct lval* a) {
-    LASSERT_NUM_ARGS(a, 1);
+    LASSERT_NUM_ARGS("len", a, 1);
     (void)e;
     struct lval* ans = lval_qexpr();
     lval_add(ans, lval_num(a->cell[0]->count));
@@ -166,8 +168,8 @@ builtin_len(struct lenv* e, struct lval* a) {
 
 struct lval*
 builtin_init(struct lenv* e, struct lval* a) {
-    LASSERT_NUM_ARGS(a, 1);
-    LASSERT_NON_EMPTY(a);
+    LASSERT_NUM_ARGS("init", a, 1);
+    LASSERT_NON_EMPTY("init", a);
     (void)e;
 
     lval_del(lval_pop(a->cell[0], a->cell[0]->count - 1));
@@ -195,7 +197,7 @@ builtin_op(struct lenv* e, struct lval* a, char* op) {
     }
 
     while (a->count > 0) {
-        LASSERT_TYPE(a, 0, LVAL_NUM);
+        LASSERT_TYPE(op, a, 0, LVAL_NUM);
         struct lval* y = lval_eval(e, lval_pop(a, 0));
         if (strcmp(op, "+") == 0) {
             x->num += y->num;
@@ -233,7 +235,7 @@ builtin_op(struct lenv* e, struct lval* a, char* op) {
 
 struct lval*
 builtin_def(struct lenv* e, struct lval* x) {
-    LASSERT_TYPE(x, 0, LVAL_QEXPR);
+    LASSERT_TYPE("def", x, 0, LVAL_QEXPR);
 
     struct lval* syms = x->cell[0];
 
