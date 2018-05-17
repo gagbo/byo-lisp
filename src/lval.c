@@ -95,7 +95,8 @@ lval_lambda(struct lval* formals, struct lval* body) {
     return v;
 }
 
-struct lval* lval_call(struct lenv* e, struct lval* f, struct lval* a) {
+struct lval*
+lval_call(struct lenv* e, struct lval* f, struct lval* a) {
     if (f->type != LVAL_FUN) {
         struct lval* err = lval_err("Not evalutating a function");
         lval_del(a);
@@ -103,16 +104,19 @@ struct lval* lval_call(struct lenv* e, struct lval* f, struct lval* a) {
     }
 
     /* If builtin, return the result directly */
-    if (f->builtin) {return f->builtin(e, a); }
+    if (f->builtin) {
+        return f->builtin(e, a);
+    }
 
     int given = a->count;
     int total = f->formals->count;
 
-    while (a->count >0) {
+    while (a->count > 0) {
         if (f->formals->count == 0) {
             lval_del(a);
-            return lval_err("Function passed too many arguments. Got %i, Expected %i",
-                    given, total);
+            return lval_err(
+                "Function passed too many arguments. Got %i, Expected %i",
+                given, total);
         }
 
         /* Bind the argument value to the function formal symbol */
@@ -130,9 +134,9 @@ struct lval* lval_call(struct lenv* e, struct lval* f, struct lval* a) {
 
     /* If all function arguments have been bound then evaluate */
     if (f->formals->count == 0) {
-    f->env->par = e;
-    return builtin_eval(f->env, lval_add(lval_sexpr(), lval_copy(f->body)));}
-    else {
+        f->env->par = e;
+        return builtin_eval(f->env, lval_add(lval_sexpr(), lval_copy(f->body)));
+    } else {
         /* Return a copy of the function with partially bound arguments */
         return lval_copy(f);
     }
@@ -337,24 +341,30 @@ lval_pop(struct lval* v, int index) {
 
 static struct lval*
 lval_eval_sexpr(struct lenv* e, struct lval* v) {
+    /* Evaluate each cell */
     for (int i = 0; i < v->count; i++) {
         v->cell[i] = lval_eval(e, v->cell[i]);
     }
 
+    /* Check that no cell had an error */
     for (int i = 0; i < v->count; ++i) {
         if (v->cell[i]->type == LVAL_ERR) {
             return lval_take(v, i);
         }
     }
 
+    /* Return itself if v contains no sub-expr */
     if (v->count == 0) {
         return v;
     }
 
+    /* Return the inner sigleton for small S-Expr */
     if (v->count == 1) {
         return lval_take(v, 0);
     }
 
+    /* Here we know we have a 'long' S-Expression, so it must start with a
+     * function */
     struct lval* f = lval_pop(v, 0);
     if (f->type != LVAL_FUN) {
         lval_del(f);
