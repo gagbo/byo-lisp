@@ -121,6 +121,23 @@ lval_call(struct lenv* e, struct lval* f, struct lval* a) {
 
         /* Bind the argument value to the function formal symbol */
         struct lval* sym = lval_pop(f->formals, 0);
+        /* Special case to deal with '&' */
+        if (strcmp(sym->sym, "&") == 0) {
+            /* Ensure '&' is followed by exactly one other symbol */
+            if (f->formals->count != 1) {
+                lval_del(a);
+                return lval_err(
+                    "Function format invalid. "
+                    "Symbol '&' not followed by single symbol");
+            }
+
+            struct lval* nsym = lval_pop(f->formals, 0);
+            /* Bind the list of var args as a Q-Expr to the symbol after '&' */
+            lenv_put(f->env, nsym, builtin_list(e, a));
+            lval_del(sym);
+            lval_del(nsym);
+            break;
+        }
         struct lval* bind_val = lval_pop(a, 0);
 
         lenv_put(f->env, sym, bind_val);
@@ -131,6 +148,28 @@ lval_call(struct lenv* e, struct lval* f, struct lval* a) {
     }
 
     lval_del(a);
+
+    /* Case where '&' is left : we have to give an empty list as optional args */
+    if (f->formals->count > 0 &&
+               strcmp(f->formals->cell[0]->sym, "&") == 0) {
+
+        /* Check that the function is well formed : only 1 symbol after & */
+        if (f->formals->count != 2) {
+            return lval_err(
+                "Function format invalid. "
+                "Symbol '&' not followed by single symbol.");
+        }
+
+        /* Delete the '&' lval */
+        lval_del(lval_pop(f->formals,0));
+
+        struct lval* sym = lval_pop(f->formals, 0);
+        struct lval* val = lval_qexpr();
+
+        lenv_put(f->env, sym, val);
+        lval_del(sym);
+        lval_del(val);
+    }
 
     /* If all function arguments have been bound then evaluate */
     if (f->formals->count == 0) {
