@@ -160,6 +160,7 @@ builtin_cons(struct lenv* e, struct lval* a) {
 struct lval*
 builtin_len(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("len", a, 1);
+    LASSERT_TYPE("len", a, 0, LVAL_QEXPR);
     (void)e;
     struct lval* ans = lval_qexpr();
     lval_add(ans, lval_num(a->cell[0]->count));
