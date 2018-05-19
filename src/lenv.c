@@ -121,4 +121,5 @@ lenv_add_builtins(struct lenv* e) {
     lenv_add_builtin(e, "exit", builtin_exit);
 
     lenv_add_builtin(e, "\\", builtin_lambda);
+    lenv_add_builtin(e, "fun", builtin_fun);
 }

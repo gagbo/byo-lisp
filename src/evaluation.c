@@ -251,6 +251,12 @@ builtin_var(struct lenv* e, struct lval* x, char* func) {
 
     struct lval* syms = x->cell[0];
 
+    /* TODO : Check that we do not redefine builtins
+     * To allow shadowing, we should probably allow 'put' to redefine builtins,
+     * but not def.
+     *
+     * Or to be safe we can prohibit redefinition everywhere, to be decided.
+     */
     for (int i = 0; i < syms->count; ++i) {
         LASSERT(x, syms->cell[i]->type == LVAL_SYM,
                 "Function '%s' cannot define non-symbol. Got %s, Expected %s.",
@@ -300,4 +306,38 @@ builtin_lambda(struct lenv* e, struct lval* a) {
     lval_del(a);
 
     return lval_lambda(formals, body);
+}
+
+struct lval*
+builtin_fun(struct lenv* e, struct lval* a) {
+    (void)e;
+    LASSERT_NUM_ARGS("fun", a, 2);
+    LASSERT_TYPE("fun", a, 0, LVAL_QEXPR);
+    LASSERT_TYPE("fun", a, 1, LVAL_QEXPR);
+
+    for (int i = 0; i < a->cell[0]->count; ++i) {
+        LASSERT(a, (a->cell[0]->cell[i]->type == LVAL_SYM),
+                "Cannot define non-symbol. Got %s, Expected %s.",
+                ltype_name(a->cell[0]->cell[i]->type), ltype_name(LVAL_SYM));
+    }
+
+    /* TODO : Add check for size of arguments.
+     * - first argument must have at least 1 arg ( the function name )
+     * - second argument can be whatever
+     */
+
+    struct lval* formals = lval_pop(a, 0);
+    struct lval* sym = lval_pop(formals, 0);
+    struct lval* body = lval_pop(a, 0);
+
+    /* Put the function name back into a Q_Expr */
+    struct lval* q_expr_fun_name = lval_add(lval_qexpr(), sym);
+
+    /* Construct the struct lval we usually pass to builtin_def */
+    struct lval* def_args = lval_add(lval_qexpr(), q_expr_fun_name);
+    lval_add(def_args, lval_lambda(formals, body));
+
+    lval_del(a);
+
+    return builtin_def(e, def_args);
 }
