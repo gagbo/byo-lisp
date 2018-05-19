@@ -29,7 +29,7 @@ main() {
               ",
               Number, Operator, SExpr, QExpr, Expr, Lispy);
 
-    puts("Lispy Version 0.0.0.1.0");
+    puts("Lispy Version 0.0.1.1.0");
     puts("Press Ctrl+C or type \"exit ()\" in prompt to exit\n");
 
     struct lenv* e = lenv_new();
