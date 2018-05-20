@@ -256,8 +256,9 @@ builtin_var(struct lenv* e, struct lval* x, char* func) {
                 "Function '%s' cannot define non-symbol. Got %s, Expected %s.",
                 func, ltype_name(syms->cell[i]->type), ltype_name(LVAL_SYM));
         if (lenv_is_builtin(e, syms->cell[i])) {
-            struct lval* err = lval_err(
-                "def/fun/= : %s is already a builtin function !", syms->cell[i]->sym);
+            struct lval* err =
+                lval_err("def/fun/= : %s is already a builtin function !",
+                         syms->cell[i]->sym);
             lval_del(x);
             return err;
         }
@@ -321,12 +322,9 @@ builtin_fun(struct lenv* e, struct lval* a) {
                 ltype_name(a->cell[0]->cell[i]->type), ltype_name(LVAL_SYM));
     }
 
-    /* TODO : Add check for size of arguments.
-     * - first argument must have at least 1 arg ( the function name )
-     * - second argument can be whatever
-     */
-
     struct lval* formals = lval_pop(a, 0);
+    /* If the first argument of fun was {}, sym will by an error, therefore
+     * builtin_def will catch it, and prevent the binding from happening */
     struct lval* sym = lval_pop(formals, 0);
     struct lval* body = lval_pop(a, 0);
 
