@@ -44,6 +44,7 @@ static struct lval* builtin_op(struct lenv* e, struct lval* a, char* op);
 static struct lval* lval_join(struct lval* lhs, struct lval* rhs);
 static struct lval* builtin_var(struct lenv* e, struct lval* a, char* func);
 static struct lval* builtin_ord(struct lenv* e, struct lval* a, char* op);
+static struct lval* builtin_cmp(struct lenv* e, struct lval* a, char* op);
 
 struct lval*
 builtin_add(struct lenv* e, struct lval* x) {
@@ -341,42 +342,73 @@ builtin_fun(struct lenv* e, struct lval* a) {
     return builtin_def(e, def_args);
 }
 
-struct lval* builtin_gt(struct lenv* e, struct lval* a) {
+struct lval*
+builtin_gt(struct lenv* e, struct lval* a) {
     return builtin_ord(e, a, ">");
 }
 
-struct lval* builtin_ge(struct lenv* e, struct lval* a) {
+struct lval*
+builtin_ge(struct lenv* e, struct lval* a) {
     return builtin_ord(e, a, ">=");
 }
 
-struct lval* builtin_lt(struct lenv* e, struct lval* a) {
+struct lval*
+builtin_lt(struct lenv* e, struct lval* a) {
     return builtin_ord(e, a, "<");
 }
 
-struct lval* builtin_le(struct lenv* e, struct lval* a) {
+struct lval*
+builtin_le(struct lenv* e, struct lval* a) {
     return builtin_ord(e, a, "<=");
 }
 
-static struct lval* builtin_ord(struct lenv* e, struct lval* a, char* op){
+static struct lval*
+builtin_ord(struct lenv* e, struct lval* a, char* op) {
     LASSERT_NUM_ARGS(op, a, 2);
     LASSERT_TYPE(op, a, 0, LVAL_NUM);
     LASSERT_TYPE(op, a, 1, LVAL_NUM);
-    struct lval* lhs = lval_pop(a, 0);
-    struct lval* rhs = lval_pop(a,0);
+    double left_val = a->cell[0]->num;
+    double right_val = a->cell[1]->num;
     lval_del(a);
 
     if (strcmp(op, ">") == 0) {
-        return (lhs->num > rhs->num) ? lval_num(1) : lval_num(0);
+        return (left_val > right_val) ? lval_num(1) : lval_num(0);
     }
     if (strcmp(op, ">=") == 0) {
-        return (lhs->num >= rhs->num) ? lval_num(1) : lval_num(0);
+        return (left_val >= right_val) ? lval_num(1) : lval_num(0);
     }
     if (strcmp(op, "<") == 0) {
-        return (lhs->num < rhs->num) ? lval_num(1) : lval_num(0);
+        return (left_val < right_val) ? lval_num(1) : lval_num(0);
     }
     if (strcmp(op, "<=") == 0) {
-        return (lhs->num <= rhs->num) ? lval_num(1) : lval_num(0);
+        return (left_val <= right_val) ? lval_num(1) : lval_num(0);
     }
 
     return lval_err("%s : comparison operator not found", op);
+}
+
+struct lval*
+builtin_eq(struct lenv* e, struct lval* a) {
+    return builtin_cmp(e, a, "==");
+}
+
+struct lval*
+builtin_ne(struct lenv* e, struct lval* a) {
+    return builtin_cmp(e, a, "!=");
+}
+
+static struct lval*
+builtin_cmp(struct lenv* e, struct lval* a, char* op) {
+    (void)e;
+    LASSERT_NUM_ARGS(op, a, 2);
+
+    int r;
+    if (strcmp(op, "==") == 0) {
+        r = lval_eq(a->cell[0], a->cell[1]);
+    }
+    if (strcmp(op, "!=") == 0) {
+        r = (1 - lval_eq(a->cell[0], a->cell[1]));
+    }
+    lval_del(a);
+    return lval_num(r);
 }

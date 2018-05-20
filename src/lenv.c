@@ -112,6 +112,9 @@ lenv_add_builtins(struct lenv* e) {
     lenv_add_builtin(e, "<", builtin_lt);
     lenv_add_builtin(e, "<=", builtin_le);
 
+    lenv_add_builtin(e, "==", builtin_eq);
+    lenv_add_builtin(e, "!=", builtin_ne);
+
     lenv_add_builtin(e, "head", builtin_head);
     lenv_add_builtin(e, "tail", builtin_tail);
     lenv_add_builtin(e, "join", builtin_join);

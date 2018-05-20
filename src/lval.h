@@ -92,6 +92,9 @@ struct lval* lval_pop(struct lval* v, int index);
 /* Return the eval expression, itself otherwise */
 struct lval* lval_eval(struct lenv* e, struct lval* v);
 
+/* Equality operator */
+int lval_eq(struct lval* x, struct lval* y);
+
 /* Print an lval */
 void lval_print(struct lval* v);
 

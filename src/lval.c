@@ -488,3 +488,42 @@ lval_println(struct lval* v) {
     lval_print(v);
     putchar('\n');
 }
+
+int
+lval_eq(struct lval* x, struct lval* y) {
+    if (x->type != y->type) {
+        return 0;
+    }
+
+    switch (x->type) {
+        case LVAL_ERR:
+            return (strcmp(x->err, y->err) == 0);
+        case LVAL_SYM:
+            return (strcmp(x->sym, y->sym) == 0);
+        case LVAL_NUM:
+            return (x->num == y->num);
+        case LVAL_FUN:
+            if (x->builtin || y->builtin) {
+                return (x->builtin == y->builtin);
+            } else {
+                return lval_eq(x->formals, y->formals) &&
+                       lval_eq(x->body, y->body);
+            }
+        case LVAL_QEXPR:
+        case LVAL_SEXPR:
+            if (x->count != y->count) {
+                return 0;
+            }
+            for (int i = 0; i < x->count; ++i) {
+                if (lval_eq(x->cell[i], y->cell[i]) == 0) {
+                    return 0;
+                }
+            }
+            return 1;
+        case LVAL_EXIT_REQ:
+            /* There's only 1 type of Exit requests */
+            return 1;
+        default:
+            return 0;
+    }
+}
