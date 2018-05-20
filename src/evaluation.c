@@ -43,6 +43,7 @@
 static struct lval* builtin_op(struct lenv* e, struct lval* a, char* op);
 static struct lval* lval_join(struct lval* lhs, struct lval* rhs);
 static struct lval* builtin_var(struct lenv* e, struct lval* a, char* func);
+static struct lval* builtin_ord(struct lenv* e, struct lval* a, char* op);
 
 struct lval*
 builtin_add(struct lenv* e, struct lval* x) {
@@ -338,4 +339,44 @@ builtin_fun(struct lenv* e, struct lval* a) {
     lval_del(a);
 
     return builtin_def(e, def_args);
+}
+
+struct lval* builtin_gt(struct lenv* e, struct lval* a) {
+    return builtin_ord(e, a, ">");
+}
+
+struct lval* builtin_ge(struct lenv* e, struct lval* a) {
+    return builtin_ord(e, a, ">=");
+}
+
+struct lval* builtin_lt(struct lenv* e, struct lval* a) {
+    return builtin_ord(e, a, "<");
+}
+
+struct lval* builtin_le(struct lenv* e, struct lval* a) {
+    return builtin_ord(e, a, "<=");
+}
+
+static struct lval* builtin_ord(struct lenv* e, struct lval* a, char* op){
+    LASSERT_NUM_ARGS(op, a, 2);
+    LASSERT_TYPE(op, a, 0, LVAL_NUM);
+    LASSERT_TYPE(op, a, 1, LVAL_NUM);
+    struct lval* lhs = lval_pop(a, 0);
+    struct lval* rhs = lval_pop(a,0);
+    lval_del(a);
+
+    if (strcmp(op, ">") == 0) {
+        return (lhs->num > rhs->num) ? lval_num(1) : lval_num(0);
+    }
+    if (strcmp(op, ">=") == 0) {
+        return (lhs->num >= rhs->num) ? lval_num(1) : lval_num(0);
+    }
+    if (strcmp(op, "<") == 0) {
+        return (lhs->num < rhs->num) ? lval_num(1) : lval_num(0);
+    }
+    if (strcmp(op, "<=") == 0) {
+        return (lhs->num <= rhs->num) ? lval_num(1) : lval_num(0);
+    }
+
+    return lval_err("%s : comparison operator not found", op);
 }

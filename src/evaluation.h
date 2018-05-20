@@ -26,6 +26,11 @@ struct lval* builtin_def(struct lenv* e, struct lval* x);
 struct lval* builtin_put(struct lenv* e, struct lval* x);
 struct lval* builtin_exit(struct lenv* e, struct lval* x);
 
+struct lval* builtin_gt(struct lenv* e, struct lval* a);
+struct lval* builtin_ge(struct lenv* e, struct lval* a);
+struct lval* builtin_lt(struct lenv* e, struct lval* a);
+struct lval* builtin_le(struct lenv* e, struct lval* a);
+
 struct lval* builtin_lambda(struct lenv* e, struct lval* x);
 /** Emulate def {fun} (\ {args body} {def (head args) (\ (tail args) body)})
  *
