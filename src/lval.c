@@ -1,9 +1,9 @@
+#include "lval.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lval.h"
 
 #include "lenv.h"
 
@@ -149,10 +149,9 @@ lval_call(struct lenv* e, struct lval* f, struct lval* a) {
 
     lval_del(a);
 
-    /* Case where '&' is left : we have to give an empty list as optional args */
-    if (f->formals->count > 0 &&
-               strcmp(f->formals->cell[0]->sym, "&") == 0) {
-
+    /* Case where '&' is left : we have to give an empty list as optional args
+     */
+    if (f->formals->count > 0 && strcmp(f->formals->cell[0]->sym, "&") == 0) {
         /* Check that the function is well formed : only 1 symbol after & */
         if (f->formals->count != 2) {
             return lval_err(
@@ -161,7 +160,7 @@ lval_call(struct lenv* e, struct lval* f, struct lval* a) {
         }
 
         /* Delete the '&' lval */
-        lval_del(lval_pop(f->formals,0));
+        lval_del(lval_pop(f->formals, 0));
 
         struct lval* sym = lval_pop(f->formals, 0);
         struct lval* val = lval_qexpr();

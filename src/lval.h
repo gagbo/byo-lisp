@@ -6,9 +6,17 @@
 
 struct lval;
 struct lenv;
-typedef struct lval*(*lbuiltin)(struct lenv*, struct lval*);
+typedef struct lval* (*lbuiltin)(struct lenv*, struct lval*);
 
-enum { LVAL_ERR, LVAL_NUM, LVAL_SYM, LVAL_FUN, LVAL_SEXPR, LVAL_QEXPR, LVAL_EXIT_REQ };
+enum {
+    LVAL_ERR,
+    LVAL_NUM,
+    LVAL_SYM,
+    LVAL_FUN,
+    LVAL_SEXPR,
+    LVAL_QEXPR,
+    LVAL_EXIT_REQ
+};
 enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 struct lval {

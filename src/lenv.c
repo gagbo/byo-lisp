@@ -1,6 +1,6 @@
+#include "lenv.h"
 #include <string.h>
 #include "evaluation.h"
-#include "lenv.h"
 
 struct lenv*
 lenv_new() {
@@ -82,9 +82,11 @@ lenv_put(struct lenv* e, struct lval* k, struct lval* v) {
 
 void
 lenv_def(struct lenv* e, struct lval* k, struct lval* v) {
-    while (e->par) { e = e->par; }
+    while (e->par) {
+        e = e->par;
+    }
 
-    lenv_put(e,k,v);
+    lenv_put(e, k, v);
 }
 
 void
