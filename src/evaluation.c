@@ -41,6 +41,7 @@
     }
 
 static struct lval* builtin_op(struct lenv* e, struct lval* a, char* op);
+static struct lval* builtin_log_op(struct lenv* e, struct lval* a, char* op);
 static struct lval* lval_join(struct lval* lhs, struct lval* rhs);
 static struct lval* builtin_var(struct lenv* e, struct lval* a, char* func);
 static struct lval* builtin_ord(struct lenv* e, struct lval* a, char* op);
@@ -200,15 +201,6 @@ builtin_op(struct lenv* e, struct lval* a, char* op) {
         }
     }
 
-    if (strcmp(op, "!") == 0) {
-        if (a->count == 0) {
-            x->num = !x->num;
-        } else {
-            lval_del(a);
-            return lval_err("not (!) expects one argument !");
-        }
-    }
-
     while (a->count > 0) {
         LASSERT_TYPE(op, a, 0, LVAL_NUM);
         struct lval* y = lval_eval(e, lval_pop(a, 0));
@@ -217,12 +209,6 @@ builtin_op(struct lenv* e, struct lval* a, char* op) {
         }
         if (strcmp(op, "-") == 0) {
             x->num -= y->num;
-        }
-        if (strcmp(op, "||") == 0) {
-            x->num = (x->num || y->num);
-        }
-        if (strcmp(op, "&&") == 0) {
-            x->num = (x->num && y->num);
         }
         if (strcmp(op, "*") == 0) {
             x->num *= y->num;
@@ -244,6 +230,38 @@ builtin_op(struct lenv* e, struct lval* a, char* op) {
                 break;
             }
             x->num = (int)round(x->num) % (int)round(y->num);
+        }
+        lval_del(y);
+    }
+
+    lval_del(a);
+    return x;
+}
+
+static struct lval*
+builtin_log_op(struct lenv* e, struct lval* a, char* op) {
+    if (a->type == LVAL_ERR) {
+        return a;
+    }
+
+    struct lval* x = lval_pop(a, 0);
+    if (strcmp(op, "!") == 0) {
+        if (a->count == 0) {
+            x->t = !x->t;
+        } else {
+            lval_del(a);
+            return lval_err("not (!) expects one argument !");
+        }
+    }
+
+    while (a->count > 0) {
+        LASSERT_TYPE(op, a, 0, LVAL_BOOL);
+        struct lval* y = lval_eval(e, lval_pop(a, 0));
+        if (strcmp(op, "||") == 0) {
+            x->t = (x->t || y->t);
+        }
+        if (strcmp(op, "&&") == 0) {
+            x->t = (x->t && y->t);
         }
         lval_del(y);
     }
@@ -414,17 +432,29 @@ builtin_ne(struct lenv* e, struct lval* a) {
 
 struct lval*
 builtin_or(struct lenv* e, struct lval* a) {
-    return builtin_op(e, a, "||");
+    return builtin_log_op(e, a, "||");
 }
 
 struct lval*
 builtin_and(struct lenv* e, struct lval* a) {
-    return builtin_op(e, a, "&&");
+    return builtin_log_op(e, a, "&&");
 }
 
 struct lval*
 builtin_not(struct lenv* e, struct lval* a) {
-    return builtin_op(e, a, "!");
+    return builtin_log_op(e, a, "!");
+}
+struct lval* builtin_true(struct lenv* e, struct lval* a) {
+    (void)e;
+    lval_del(a);
+    return lval_bool(true);
+
+}
+
+struct lval* builtin_false(struct lenv* e, struct lval* a){
+    (void)e;
+    lval_del(a);
+    return lval_bool(false);
 }
 
 static struct lval*
@@ -437,15 +467,15 @@ builtin_cmp(struct lenv* e, struct lval* a, char* op) {
         r = lval_eq(a->cell[0], a->cell[1]);
     }
     if (strcmp(op, "!=") == 0) {
-        r = (1 - lval_eq(a->cell[0], a->cell[1]));
+        r = !lval_eq(a->cell[0], a->cell[1]);
     }
     lval_del(a);
-    return lval_num(r);
+    return lval_bool(r);
 }
 struct lval*
 builtin_cond(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("cond", a, 3);
-    LASSERT_TYPE("cond", a, 0, LVAL_NUM);
+    LASSERT_TYPE("cond", a, 0, LVAL_BOOL);
     LASSERT_TYPE("cond", a, 1, LVAL_QEXPR);
     LASSERT_TYPE("cond", a, 2, LVAL_QEXPR);
 

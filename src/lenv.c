@@ -1,6 +1,6 @@
-#include "lenv.h"
 #include <string.h>
 #include "evaluation.h"
+#include "lenv.h"
 
 struct lenv*
 lenv_new() {
@@ -55,6 +55,11 @@ lenv_get(struct lenv* e, struct lval* k) {
 bool
 lenv_is_builtin(struct lenv* e, struct lval* k) {
     struct lval* target = lenv_get(e, k);
+    /* Special symbols : exit, t , f */
+    if (strcmp(k->sym, "exit") == 0 || strcmp(k->sym, "t") == 0 ||
+        strcmp(k->sym, "f") == 0) {
+        return true;
+    }
     if (target->type != LVAL_FUN) {
         return false;
     }
@@ -99,6 +104,14 @@ lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun) {
 }
 
 void
+lenv_add_builtin_symbol(struct lenv* e, char* name, struct lval* value) {
+    struct lval* key = lval_sym(name);
+    lenv_put(e, key, value);
+    lval_del(key);
+    lval_del(value);
+}
+
+void
 lenv_add_builtins(struct lenv* e) {
     lenv_add_builtin(e, "+", builtin_add);
     lenv_add_builtin(e, "-", builtin_sub);
@@ -132,8 +145,14 @@ lenv_add_builtins(struct lenv* e) {
 
     lenv_add_builtin(e, "def", builtin_def);
     lenv_add_builtin(e, "=", builtin_put);
-    lenv_add_builtin(e, "exit", builtin_exit);
 
     lenv_add_builtin(e, "\\", builtin_lambda);
     lenv_add_builtin(e, "fun", builtin_fun);
+
+    /* Currently, these builtin symbols must be added in the check inside lenv_is_builtin
+     * otherwise they won't get properly detected and will be redefined
+     */
+    lenv_add_builtin_symbol(e, "t", lval_bool(true));
+    lenv_add_builtin_symbol(e, "f", lval_bool(false));
+    lenv_add_builtin_symbol(e, "exit", lval_exit_req("'exit' symbol"));
 }

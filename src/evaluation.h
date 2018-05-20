@@ -36,6 +36,10 @@ struct lval* builtin_ne(struct lenv* e, struct lval* a);
 struct lval* builtin_or(struct lenv* e, struct lval* a);
 struct lval* builtin_and(struct lenv* e, struct lval* a);
 struct lval* builtin_not(struct lenv* e, struct lval* a);
+/* Produces true, for builtin definition of symbol 't' */
+struct lval* builtin_true(struct lenv* e, struct lval* a);
+/* Produces false, for builtin definition of symbol 'f' */
+struct lval* builtin_false(struct lenv* e, struct lval* a);
 
 struct lval* builtin_cond(struct lenv* e, struct lval* a);
 

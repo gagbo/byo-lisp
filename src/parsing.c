@@ -30,7 +30,7 @@ main() {
               Number, Operator, SExpr, QExpr, Expr, Lispy);
 
     puts("Lispy Version 0.0.1.1.0");
-    puts("Press Ctrl+C, Ctrl+D, or type \"exit ()\" in prompt to exit\n");
+    puts("Press Ctrl+C, Ctrl+D, or type \"exit\" in prompt to exit\n");
 
     struct lenv* e = lenv_new();
     lenv_add_builtins(e);

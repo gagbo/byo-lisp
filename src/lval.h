@@ -4,6 +4,8 @@
 #include "evaluation.h"
 #include "mpc.h"
 
+#include <stdbool.h>
+
 struct lval;
 struct lenv;
 typedef struct lval* (*lbuiltin)(struct lenv*, struct lval*);
@@ -12,6 +14,7 @@ enum {
     LVAL_ERR,
     LVAL_NUM,
     LVAL_SYM,
+    LVAL_BOOL,
     LVAL_FUN,
     LVAL_SEXPR,
     LVAL_QEXPR,
@@ -26,6 +29,7 @@ struct lval {
     double num;
     char* err;
     char* sym;
+    bool t;
 
     /* Function */
     lbuiltin builtin;
@@ -39,7 +43,7 @@ struct lval {
 };
 
 /* Return a string with human-readable type name */
-char* ltype_name(int t);
+char* ltype_name(int type);
 
 /* Create a new lval from a number */
 struct lval* lval_num(double x);
@@ -49,6 +53,9 @@ struct lval* lval_err(char* fmt, ...);
 
 /* Create a new lval from a symbol */
 struct lval* lval_sym(char* symbol);
+
+/* Create a new lval from a boolean */
+struct lval* lval_bool(bool value);
 
 /* Create a new lval from a builtin function */
 struct lval* lval_builtin(char* name, lbuiltin builtin);
@@ -93,7 +100,7 @@ struct lval* lval_pop(struct lval* v, int index);
 struct lval* lval_eval(struct lenv* e, struct lval* v);
 
 /* Equality operator */
-int lval_eq(struct lval* x, struct lval* y);
+bool lval_eq(struct lval* x, struct lval* y);
 
 /* Print an lval */
 void lval_print(struct lval* v);

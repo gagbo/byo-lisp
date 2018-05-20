@@ -1,9 +1,9 @@
-#include "lval.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "lval.h"
 
 #include "lenv.h"
 
@@ -22,6 +22,8 @@ ltype_name(int t) {
             return "Error";
         case LVAL_SYM:
             return "Symbol";
+        case LVAL_BOOL:
+            return "Boolean";
         case LVAL_SEXPR:
             return "S-Expression";
         case LVAL_QEXPR:
@@ -67,6 +69,15 @@ lval_sym(char* symbol) {
     assert(v);
     v->type = LVAL_SYM;
     v->sym = strdup(symbol);
+    return v;
+}
+
+struct lval*
+lval_bool(bool value) {
+    struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
+    v->type = LVAL_BOOL;
+    v->t = value;
     return v;
 }
 
@@ -245,6 +256,9 @@ lval_copy(struct lval* rhs) {
         case LVAL_EXIT_REQ:
             x->err = strdup(rhs->err);
             break;
+        case LVAL_BOOL:
+            x->t = rhs->t;
+            break;
         case LVAL_SYM:
             x->sym = strdup(rhs->sym);
             break;
@@ -264,6 +278,7 @@ void
 lval_del(struct lval* v) {
     switch (v->type) {
         case LVAL_NUM:
+        case LVAL_BOOL:
             break;
         case LVAL_ERR:
         case LVAL_EXIT_REQ:
@@ -436,6 +451,10 @@ lval_print(struct lval* v) {
             printf("%g", v->num);
             break;
 
+        case LVAL_BOOL:
+            printf("%s", v->t ? "t" : "f");
+            break;
+
         case LVAL_ERR:
             printf("Error : %s", v->err);
             break;
@@ -489,10 +508,10 @@ lval_println(struct lval* v) {
     putchar('\n');
 }
 
-int
+bool
 lval_eq(struct lval* x, struct lval* y) {
     if (x->type != y->type) {
-        return 0;
+        return false;
     }
 
     switch (x->type) {
@@ -502,6 +521,8 @@ lval_eq(struct lval* x, struct lval* y) {
             return (strcmp(x->sym, y->sym) == 0);
         case LVAL_NUM:
             return (x->num == y->num);
+        case LVAL_BOOL:
+            return (x->t == y->t);
         case LVAL_FUN:
             if (x->builtin || y->builtin) {
                 return (x->builtin == y->builtin);
@@ -512,18 +533,18 @@ lval_eq(struct lval* x, struct lval* y) {
         case LVAL_QEXPR:
         case LVAL_SEXPR:
             if (x->count != y->count) {
-                return 0;
+                return false;
             }
             for (int i = 0; i < x->count; ++i) {
                 if (lval_eq(x->cell[i], y->cell[i]) == 0) {
-                    return 0;
+                    return false;
                 }
             }
-            return 1;
+            return true;
         case LVAL_EXIT_REQ:
             /* There's only 1 type of Exit requests */
-            return 1;
+            return true;
         default:
-            return 0;
+            return false;
     }
 }
