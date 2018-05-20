@@ -124,6 +124,8 @@ lenv_add_builtins(struct lenv* e) {
     lenv_add_builtin(e, "cons", builtin_cons);
     lenv_add_builtin(e, "init", builtin_init);
 
+    lenv_add_builtin(e, "cond", builtin_cond);
+
     lenv_add_builtin(e, "def", builtin_def);
     lenv_add_builtin(e, "=", builtin_put);
     lenv_add_builtin(e, "exit", builtin_exit);

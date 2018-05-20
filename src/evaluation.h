@@ -34,6 +34,8 @@ struct lval* builtin_le(struct lenv* e, struct lval* a);
 struct lval* builtin_eq(struct lenv* e, struct lval* a);
 struct lval* builtin_ne(struct lenv* e, struct lval* a);
 
+struct lval* builtin_cond(struct lenv* e, struct lval* a);
+
 struct lval* builtin_lambda(struct lenv* e, struct lval* x);
 /** Emulate def {fun} (\ {args body} {def (head args) (\ (tail args) body)})
  *
