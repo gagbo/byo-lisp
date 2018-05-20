@@ -251,16 +251,16 @@ builtin_var(struct lenv* e, struct lval* x, char* func) {
 
     struct lval* syms = x->cell[0];
 
-    /* TODO : Check that we do not redefine builtins
-     * To allow shadowing, we should probably allow 'put' to redefine builtins,
-     * but not def.
-     *
-     * Or to be safe we can prohibit redefinition everywhere, to be decided.
-     */
     for (int i = 0; i < syms->count; ++i) {
         LASSERT(x, syms->cell[i]->type == LVAL_SYM,
                 "Function '%s' cannot define non-symbol. Got %s, Expected %s.",
                 func, ltype_name(syms->cell[i]->type), ltype_name(LVAL_SYM));
+        if (lenv_is_builtin(e, syms->cell[i])) {
+            struct lval* err = lval_err(
+                "def/fun/= : %s is already a builtin function !", syms->cell[i]->sym);
+            lval_del(x);
+            return err;
+        }
     }
 
     LASSERT(x, syms->count == x->count - 1,
