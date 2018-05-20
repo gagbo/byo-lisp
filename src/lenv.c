@@ -90,9 +90,7 @@ lenv_def(struct lenv* e, struct lval* k, struct lval* v) {
 void
 lenv_add_builtin(struct lenv* e, char* name, lbuiltin fun) {
     struct lval* key = lval_sym(name);
-    /* lval_fun is the function that creates builtin bindings */
-    /* TODO : Rename lval_fun to lval_builtin everywhere */
-    struct lval* value = lval_fun(name, fun);
+    struct lval* value = lval_builtin(name, fun);
     lenv_put(e, key, value);
     lval_del(key);
     lval_del(value);

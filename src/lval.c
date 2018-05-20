@@ -71,7 +71,7 @@ lval_sym(char* symbol) {
 }
 
 struct lval*
-lval_fun(char* name, lbuiltin builtin) {
+lval_builtin(char* name, lbuiltin builtin) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
     v->type = LVAL_FUN;
