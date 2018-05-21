@@ -40,6 +40,19 @@ main(int argc, char* argv[]) {
     struct lenv* e = lenv_new(Lispy);
     lenv_add_builtins(e);
 
+    /* Load input files if given as arguments */
+    if (argc >= 2) {
+        for (int i = 1; i < argc; ++i) {
+            struct lval* args = lval_add(lval_sexpr(), lval_str(argv[i]));
+
+            struct lval* x = builtin_load(e, args);
+
+            if (x->type == LVAL_ERR) {
+                lval_println(x);
+            }
+            lval_del(x);
+        }
+    }
     while (1) {
         char* input = readline("lispy> ");
 

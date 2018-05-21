@@ -1,0 +1,2 @@
+; This is a test file for the load command of Lispy
+(fun {is_x_1 x} {cond (== x 1) {t} {f}})
