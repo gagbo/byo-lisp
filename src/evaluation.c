@@ -484,7 +484,7 @@ builtin_cond(struct lenv* e, struct lval* a) {
     a->cell[1]->type = LVAL_SEXPR;
     a->cell[2]->type = LVAL_SEXPR;
 
-    if (a->cell[0]->num) {
+    if (a->cell[0]->t) {
         /* If condition is true evaluate first expression */
         x = lval_eval(e, lval_pop(a, 1));
     } else {
