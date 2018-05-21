@@ -4,15 +4,26 @@
 ;;; Test cases for native functions
 ;;;
 
-; Helper function
+; Functions that are not 'properly' tested but should be fine :
+;  - load
+;  - print
+;  - show (although running the tests should show the results)
+;  - error
+;  - fun (although being able to run the tests show it somewhat works)
+;  - def (although fun is actually syntactic sugar over def)
+;  - put (it will be tested in the std lib, since it's used for closures)
+;  - lambda (although fun is actually syntactic sugar over lambda)
+
+
+; Helper functions
 (fun {unpack f l} {
   eval (join (list f) l)
 })
 
-(fun {test name f result & args}
-     {cond (== (unpack f args) result)
+(fun {test name f expected & args}
+     {cond (== (unpack f args) expected)
          {show name " : Ok"}
-         {show name " : Not Ok -> Got " (unpack f args) ", Expected " result}})
+         {show name " : Not Ok -> Got " (unpack f args) ", Expected " expected}})
 
 ;; Arithmetic tests
 (show "Arithmetic tests\n============================\n")
@@ -29,7 +40,7 @@
 (test "Modulo with 3 numbers             " % 1 10 7 2)
 (test "Floor                             " floor 10 10.2)
 (test "Floor with negative               " floor -11 -10.2)
-(show "\n\n\n")
+(show "\n")
 
 ;; List tests
 (show "List tests\n============================\n")
@@ -48,9 +59,29 @@
 (test "Cons on nil         " cons {"test"} "test" nil)
 (test "Cons on real list   " cons {"alpha" 2 "gamma"} "alpha" {2 "gamma"})
 (test "Init on real list   " init {"alpha" 2} {"alpha" 2 "gamma"})
-(show "\n\n\n")
+(show "\n")
 
 ;; Logical tests
 (show "Logical tests\n============================\n")
-(test "Equality  true" == t 1 1)
-(test "Equality false" == f 1 0)
+(test "Equality true     " == t 1 1)
+(test "Equality false    " == f 1 0)
+(test "not equal  true   " != f "test" "test")
+(test "not equal false   " != t "1" 1)
+(test "geq true          " >= t 1 1)
+(test "geq true          " >= t 2 1)
+(test "geq false         " >= f -1 1)
+(test "ge  true          " > t 2 1)
+(test "ge  false         " > f 2 2)
+(test "ge  false         " > f -1 1)
+(test "leq true          " <= t 1 1)
+(test "leq true          " <= t -1 1)
+(test "leq false         " <= f 1 0)
+(test "le  true          " < t -1 1)
+(test "le  false         " < f 1 1)
+(test "le  false         " < f 1 0)
+(test "Or true           " || t f f t f f)
+(test "Or false          " || f f f f f)
+(test "And true          " && t t t t)
+(test "And false         " && f t t f t)
+(test "Cond first branch " cond 0 (t) {0} {"second"})
+(test "Cond second branch" cond "second" (f) {0} {"second"})
