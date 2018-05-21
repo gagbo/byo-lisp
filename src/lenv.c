@@ -153,6 +153,7 @@ lenv_add_builtins(struct lenv* e) {
 
     lenv_add_builtin(e, "load", builtin_load);
     lenv_add_builtin(e, "print", builtin_print);
+    lenv_add_builtin(e, "show", builtin_show);
     lenv_add_builtin(e, "error", builtin_error);
 
     /* Currently, these builtin symbols must be added in the check inside

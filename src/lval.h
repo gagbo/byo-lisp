@@ -111,6 +111,12 @@ bool lval_eq(struct lval* x, struct lval* y);
 /* Print an lval */
 void lval_print(struct lval* v);
 
+/* Show an lval 
+ * This function is only different for LVAL_STR, this one inteprets escape
+ * sequences
+ */
+void lval_show(struct lval* v);
+
 /* Print an expr lval */
 void lval_expr_print(struct lval* v, char open, char close);
 

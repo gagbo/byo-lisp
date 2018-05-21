@@ -524,6 +524,19 @@ lval_print_str(struct lval* v) {
 }
 
 void
+lval_show(struct lval* v) {
+    switch (v->type) {
+        case LVAL_STR:
+            printf("%s", v->str);
+            break;
+
+        default:
+            lval_print(v);
+            break;
+    }
+}
+
+void
 lval_print(struct lval* v) {
     switch (v->type) {
         case LVAL_NUM:
