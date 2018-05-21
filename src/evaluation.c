@@ -321,13 +321,6 @@ builtin_var(struct lenv* e, struct lval* x, char* func) {
 }
 
 struct lval*
-builtin_exit(struct lenv* e, struct lval* x) {
-    (void)e;
-    lval_del(x);
-    return lval_exit_req("exit command");
-}
-
-struct lval*
 builtin_lambda(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("\\", a, 2);
     LASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
@@ -407,16 +400,16 @@ builtin_ord(struct lenv* e, struct lval* a, char* op) {
     lval_del(a);
 
     if (strcmp(op, ">") == 0) {
-        return (left_val > right_val) ? lval_num(1) : lval_num(0);
+        return lval_bool(left_val > right_val);
     }
     if (strcmp(op, ">=") == 0) {
-        return (left_val >= right_val) ? lval_num(1) : lval_num(0);
+        return lval_bool(left_val >= right_val);
     }
     if (strcmp(op, "<") == 0) {
-        return (left_val < right_val) ? lval_num(1) : lval_num(0);
+        return lval_bool(left_val < right_val);
     }
     if (strcmp(op, "<=") == 0) {
-        return (left_val <= right_val) ? lval_num(1) : lval_num(0);
+        return lval_bool(left_val <= right_val);
     }
 
     return lval_err("%s : comparison operator not found", op);
@@ -445,19 +438,6 @@ builtin_and(struct lenv* e, struct lval* a) {
 struct lval*
 builtin_not(struct lenv* e, struct lval* a) {
     return builtin_log_op(e, a, "!");
-}
-struct lval*
-builtin_true(struct lenv* e, struct lval* a) {
-    (void)e;
-    lval_del(a);
-    return lval_bool(true);
-}
-
-struct lval*
-builtin_false(struct lenv* e, struct lval* a) {
-    (void)e;
-    lval_del(a);
-    return lval_bool(false);
 }
 
 static struct lval*
