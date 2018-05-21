@@ -1,0 +1,81 @@
+; vim: ft=lisp
+
+;;;
+;;; Test file for the standard library
+;;;
+
+; These functions are not properly tested :
+;  - pack/unpack/curry/uncurry
+
+(load "stdlib.lspy")
+
+(fun {test name f expected & args}
+     {cond (== (unpack f args) expected)
+         {show name " : Ok"}
+         {show name " : Not Ok -> Got " (unpack f args) ", Expected " expected}})
+
+(test "Closure (let + do + put)" let 100 {do (= {x} 100) (x)})
+
+;; List tests
+(show "List tests\n============================\n")
+(test "First element        " fst 0 { 0 1 2 3 4 })
+(test "Second element       " snd 1 { 0 1 2 3 4 })
+(test "Third element        " trd 2 { 0 1 2 3 4 })
+(test "nth element          " nth "good" 2 { 0 1 "good" 3 4 })
+(test "Last element         " last 8 { 2 3 4 9 0 1 2 432 "hello" 8})
+(test "Map                  " map {2 4 6 8} (\ {x} {(* 2 x)}) {1 2 3 4})
+(test "Filter               " filter { 2 6 4 } (\ {x} {(== 0 (% x 2))}) { 1 2 3 6 4 7 -9 })
+(test "Reverse              " reverse { 5 4 3 2 1 } { 1 2 3 4 5 })
+(test "Fold left            " foldl 48 (\ {x y} {(* x y)}) 1 {2 4 6})
+(test "Fold right           " foldr -96 (\ {x y} {(- x y)}) 100 {2 4 6})
+(test "Take n items         " take {0 "hello"} 2 {0 "hello" 2 3 4})
+(test "Take 0 item          " take nil 0 { 0 1 2 3 4 })
+(test "drop n items         " drop {"world" 4 5 6} 2 {"dummy" 0 "world" 4 5 6 })
+(test "drop 0 item          " drop {"intact" "list"} 0 {"intact" "list"})
+(test "split list           " split {{"first" "part"} {"all" "the" "rest"}}
+                                    2 {"first" "part" "all" "the" "rest"})
+(test "Take while           " take-while {1 1 1 1} (\ {x} {(== x 1)}) { 1 1 1 1 2 3 })
+(test "Drop while           " drop-while {2 3} (\ {x} {(== x 1)}) { 1 1 1 1 2 3 })
+(test "Element of list true " elem t "test" { 0 2 "test" "alpha" "world" })
+(test "Element of list false" elem f "2" { 0 2 "test" "alpha" "world" })
+(test "Lookup               " lookup "target" "good key" {{0 "not"}
+                                                          {"still not" "not"}
+                                                          {"good key" "target"}
+                                                          {"hello" -25}})
+(test "Zip                 " zip {{"first" 0}{1 "second"}{"hello" "world"}}
+                                 {"first" 1 "hello"} {0 "second" "world"})
+(test "Unzip               " unzip {{"first" 1 "hello"}{0 "second" "world"}}
+                                   {{"first" 0} {1 "second"} {"hello" "world"}})
+(show "\n")
+
+;; Numeric tests
+(show "Numeric tests\n============================\n")
+(test "Minimum       " min -2 4 5 -2 -1 0)
+(test "Maximum       " max 5 4 5 -1 -2 0)
+(show "\n")
+
+;; Conditional tests
+(show "Conditional tests\n============================\n")
+(test "Select first case        " select "first" {t "first"}
+                                                 {t "second"})
+(test "Select second case       " select "second" {f "first"}
+                                                  {t "second"})
+(test "Select otherwise case    " select "third" {f "first"}
+                                                 {f "second"}
+                                                 {otherwise "third"})
+(test "Case first case          " case "first" 0 {0 "first"}
+                                                 {1 "second"}
+                                                 {2 "third"})
+(test "Case third case          " case "third" 2 {0 "first"}
+                                                 {1 "second"}
+                                                 {2 "third"})
+(test "Case third case (non-num)" case 23.25 "third" {"first" -23}
+                                                     {"second" "alpha"}
+                                                     {"third" 23.25})
+
+
+;; Misc tests
+(show "Misc tests\n============================\n")
+(test "Flip                              " flip -5 - 10 5)
+(test "Flip ineq                         " flip f > 25 -25)
+(test "Ghost allows to compare bad floats" ghost 22.1 22.1)

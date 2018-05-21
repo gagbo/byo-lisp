@@ -106,7 +106,7 @@
 (fun {filter f l} {
   cond (== l nil)
     {nil}
-    {join (if (f (fst l)) {head l} {nil}) (filter f (tail l))}
+    {join (cond (f (fst l)) {head l} {nil}) (filter f (tail l))}
 })
 
 ; Reverse List
@@ -152,14 +152,14 @@
 
 ; Take While
 (fun {take-while f l} {
-  cond (not (unpack f (head l)))
+  cond (! (unpack f (head l)))
     {nil}
     {join (head l) (take-while f (tail l))}
 })
 
 ; Drop While
 (fun {drop-while f l} {
-  cond (not (unpack f (head l)))
+  cond (! (unpack f (head l)))
     {l}
     {drop-while f (tail l)}
 })
@@ -167,8 +167,8 @@
 ; Element of List
 (fun {elem x l} {
   cond (== l nil)
-    {false}
-    {cond (== x (fst l)) {true} {elem x (tail l)}}
+    {f}
+    {cond (== x (fst l)) {t} {elem x (tail l)}}
 })
 
 ; Find element in list of pairs
@@ -184,7 +184,7 @@
 
 ; Zip two lists together into a list of pairs
 (fun {zip x y} {
-  cond (or (== x nil) (== y nil))
+  cond (|| (== x nil) (== y nil))
     {nil}
     {join (list (join (head x) (head y))) (zip (tail x) (tail y))}
 })
