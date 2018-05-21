@@ -126,7 +126,7 @@ lval_builtin(char* name, lbuiltin builtin) {
 }
 
 struct lval*
-lval_lambda(struct lval* formals, struct lval* body) {
+lval_lambda(struct lval* formals, struct lval* body, struct lenv* par) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
     lval_default(v);
@@ -134,7 +134,7 @@ lval_lambda(struct lval* formals, struct lval* body) {
 
     v->builtin = NULL;
 
-    v->env = lenv_new();
+    v->env = lenv_new(par->Lispy);
     v->formals = formals;
     v->body = body;
 

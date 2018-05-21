@@ -47,7 +47,8 @@ static struct lval* builtin_var(struct lenv* e, struct lval* a, char* func);
 static struct lval* builtin_ord(struct lenv* e, struct lval* a, char* op);
 static struct lval* builtin_cmp(struct lenv* e, struct lval* a, char* op);
 
-static struct lval* load_from_file(struct lenv* e, struct lval* a, mpc_parser_t* Lispy);
+static struct lval* load_from_file(struct lenv* e, struct lval* a,
+                                   mpc_parser_t* Lispy);
 
 struct lval*
 builtin_add(struct lenv* e, struct lval* x) {
@@ -328,7 +329,6 @@ builtin_exit(struct lenv* e, struct lval* x) {
 
 struct lval*
 builtin_lambda(struct lenv* e, struct lval* a) {
-    (void)e;
     LASSERT_NUM_ARGS("\\", a, 2);
     LASSERT_TYPE("\\", a, 0, LVAL_QEXPR);
     LASSERT_TYPE("\\", a, 1, LVAL_QEXPR);
@@ -343,7 +343,7 @@ builtin_lambda(struct lenv* e, struct lval* a) {
     struct lval* body = lval_pop(a, 0);
     lval_del(a);
 
-    return lval_lambda(formals, body);
+    return lval_lambda(formals, body, e);
 }
 
 struct lval*
@@ -370,7 +370,7 @@ builtin_fun(struct lenv* e, struct lval* a) {
 
     /* Construct the struct lval we usually pass to builtin_def */
     struct lval* def_args = lval_add(lval_qexpr(), q_expr_fun_name);
-    lval_add(def_args, lval_lambda(formals, body));
+    lval_add(def_args, lval_lambda(formals, body, e));
 
     lval_del(a);
 
@@ -508,7 +508,8 @@ builtin_load(struct lenv* e, struct lval* a) {
     return load_from_file(e, a, e->Lispy);
 }
 
-static struct lval* load_from_file(struct lenv* e, struct lval* a, mpc_parser_t* Lispy) {
+static struct lval*
+load_from_file(struct lenv* e, struct lval* a, mpc_parser_t* Lispy) {
     mpc_result_t r;
     if (mpc_parse_contents(a->cell[0]->str, Lispy, &r)) {
         struct lval* expr = lval_read(r.output);
@@ -536,4 +537,28 @@ static struct lval* load_from_file(struct lenv* e, struct lval* a, mpc_parser_t*
 
         return err;
     }
+}
+
+struct lval*
+builtin_print(struct lenv* e, struct lval* a) {
+    (void)e;
+    for (int i = 0; i < a->count; ++i) {
+        lval_print(a->cell[i]);
+        putchar(' ');
+    }
+
+    putchar('\n');
+    lval_del(a);
+    return lval_sexpr();
+}
+
+struct lval*
+builtin_error(struct lenv* e, struct lval* a) {
+    LASSERT_NUM_ARGS("error", a, 1);
+    LASSERT_TYPE("error", a, 0, LVAL_STR);
+    (void)e;
+
+    struct lval* err = lval_err(a->cell[0]->str);
+    lval_del(a);
+    return err;
 }

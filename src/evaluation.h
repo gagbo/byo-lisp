@@ -63,4 +63,10 @@ struct lval* builtin_fun(struct lenv* e, struct lval* x);
 /** Load a file and evaluate it */
 struct lval* builtin_load(struct lenv* e, struct lval* a);
 
+/** Print a value */
+struct lval* builtin_print(struct lenv* e, struct lval* a);
+
+/** Print an error message */
+struct lval* builtin_error(struct lenv* e, struct lval* a);
+
 #endif  // EVALUATION_H_

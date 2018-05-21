@@ -66,7 +66,8 @@ struct lval* lval_str(char* s);
 struct lval* lval_builtin(char* name, lbuiltin builtin);
 
 /* Create a new lval from a lambda function */
-struct lval* lval_lambda(struct lval* formals, struct lval* body);
+struct lval* lval_lambda(struct lval* formals, struct lval* body,
+                         struct lenv* par);
 
 /* Create a new lval from calling a lambda function */
 struct lval* lval_call(struct lenv* e, struct lval* f, struct lval* a);

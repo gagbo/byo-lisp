@@ -19,7 +19,7 @@ struct lenv {
     int count;
     char** syms;
     struct lval** vals;
-    mpc_parser_t * Lispy;
+    mpc_parser_t* Lispy;
 };
 
 /* Create an environment */
