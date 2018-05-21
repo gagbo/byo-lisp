@@ -57,7 +57,7 @@ struct lval* builtin_eval(struct lenv* e, struct lval* x);
 struct lval* builtin_list(struct lenv* e, struct lval* x);
 
 /** Computes (len x) where x is a list given as Q-Expression
- * Returns the length of the list enclosed in a Q-Expression
+ * Returns the length of the list enclosed in a S-Expression
  * Returns 0 for an empty list
  */
 struct lval* builtin_len(struct lenv* e, struct lval* x);

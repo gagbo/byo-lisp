@@ -20,6 +20,7 @@ lenv_copy(struct lenv* rhs) {
     e->count = rhs->count;
     e->syms = malloc(sizeof(char*) * e->count);
     e->vals = malloc(sizeof(struct lval*) * e->count);
+    e->Lispy = rhs->Lispy;
 
     for (int i = 0; i < e->count; ++i) {
         e->syms[i] = strdup(rhs->syms[i]);

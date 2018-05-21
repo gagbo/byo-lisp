@@ -98,9 +98,11 @@ struct lval*
 builtin_tail(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("tail", a, 1);
     LASSERT_TYPE("tail", a, 0, LVAL_QEXPR);
-    LASSERT_NON_EMPTY("tail", a);
     (void)e;
 
+    if (a->cell[0]->count == 0) {
+        return lval_qexpr();
+    }
     struct lval* v = lval_take(a, 0); /* Here v is the actual {QEXPR} arg */
     lval_del(lval_pop(v, 0));
     return v;
@@ -168,7 +170,7 @@ builtin_len(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("len", a, 1);
     LASSERT_TYPE("len", a, 0, LVAL_QEXPR);
     (void)e;
-    struct lval* ans = lval_qexpr();
+    struct lval* ans = lval_sexpr();
     lval_add(ans, lval_num(a->cell[0]->count));
 
     return ans;
