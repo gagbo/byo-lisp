@@ -15,6 +15,7 @@ enum {
     LVAL_NUM,
     LVAL_SYM,
     LVAL_BOOL,
+    LVAL_STR,
     LVAL_FUN,
     LVAL_SEXPR,
     LVAL_QEXPR,
@@ -29,6 +30,7 @@ struct lval {
     double num;
     char* err;
     char* sym;
+    char* str;
     bool t;
 
     /* Function */
@@ -56,6 +58,9 @@ struct lval* lval_sym(char* symbol);
 
 /* Create a new lval from a boolean */
 struct lval* lval_bool(bool value);
+
+/* Create a new lval from a string */
+struct lval* lval_str(char* s);
 
 /* Create a new lval from a builtin function */
 struct lval* lval_builtin(char* name, lbuiltin builtin);

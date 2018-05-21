@@ -10,6 +10,8 @@
 #define MAX_ERROR_LEN 512
 
 static struct lval* lval_eval_sexpr(struct lenv* e, struct lval* v);
+static void lval_print_str(struct lval* v);
+static struct lval* lval_read_str(mpc_ast_t* t);
 
 char*
 ltype_name(int t) {
@@ -24,6 +26,8 @@ ltype_name(int t) {
             return "Symbol";
         case LVAL_BOOL:
             return "Boolean";
+        case LVAL_STR:
+            return "String";
         case LVAL_SEXPR:
             return "S-Expression";
         case LVAL_QEXPR:
@@ -78,6 +82,15 @@ lval_bool(bool value) {
     assert(v);
     v->type = LVAL_BOOL;
     v->t = value;
+    return v;
+}
+
+struct lval*
+lval_str(char* s) {
+    struct lval* v = malloc(sizeof(struct lval));
+    assert(v);
+    v->type = LVAL_STR;
+    v->str = strdup(s);
     return v;
 }
 
@@ -259,6 +272,9 @@ lval_copy(struct lval* rhs) {
         case LVAL_BOOL:
             x->t = rhs->t;
             break;
+        case LVAL_STR:
+            x->str = strdup(rhs->str);
+            break;
         case LVAL_SYM:
             x->sym = strdup(rhs->sym);
             break;
@@ -279,6 +295,9 @@ lval_del(struct lval* v) {
     switch (v->type) {
         case LVAL_NUM:
         case LVAL_BOOL:
+            break;
+        case LVAL_STR:
+            free(v->str);
             break;
         case LVAL_ERR:
         case LVAL_EXIT_REQ:
@@ -315,6 +334,22 @@ lval_read_num(mpc_ast_t* t) {
     return errno != ERANGE ? lval_num(x) : lval_err("invalid number");
 }
 
+static struct lval*
+lval_read_str(mpc_ast_t* t) {
+    /* Cut off the final quote */
+    t->contents[strlen(t->contents) - 1] = '\0';
+
+    /* Cut out the first quote and copy in variable */
+    char* unescaped = strdup(t->contents + 1);
+
+    /* Use mpc function to interpret escape sequences */
+    unescaped = mpcf_unescape(unescaped);
+    struct lval* str = lval_str(unescaped);
+
+    free(unescaped);
+    return str;
+}
+
 struct lval*
 lval_read(mpc_ast_t* t) {
     if (strstr(t->tag, "number")) {
@@ -323,6 +358,10 @@ lval_read(mpc_ast_t* t) {
 
     if (strstr(t->tag, "symbol")) {
         return lval_sym(t->contents);
+    }
+
+    if (strstr(t->tag, "string")) {
+        return lval_read_str(t);
     }
 
     struct lval* x = NULL;
@@ -444,11 +483,23 @@ lval_eval(struct lenv* e, struct lval* v) {
     return v;
 }
 
+static void
+lval_print_str(struct lval* v) {
+    char* escaped = strdup(v->str);
+    escaped = mpcf_escape(escaped);
+    printf("\"%s\"", escaped);
+    free(escaped);
+}
+
 void
 lval_print(struct lval* v) {
     switch (v->type) {
         case LVAL_NUM:
             printf("%g", v->num);
+            break;
+
+        case LVAL_STR:
+            lval_print_str(v);
             break;
 
         case LVAL_BOOL:
@@ -523,6 +574,8 @@ lval_eq(struct lval* x, struct lval* y) {
             return (x->num == y->num);
         case LVAL_BOOL:
             return (x->t == y->t);
+        case LVAL_STR:
+            return (strcmp(x->str, y->str) == 0);
         case LVAL_FUN:
             if (x->builtin || y->builtin) {
                 return (x->builtin == y->builtin);
