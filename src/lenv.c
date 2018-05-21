@@ -1,14 +1,15 @@
+#include "lenv.h"
 #include <string.h>
 #include "evaluation.h"
-#include "lenv.h"
 
 struct lenv*
-lenv_new() {
+lenv_new(mpc_parser_t* Lispy) {
     struct lenv* e = malloc(sizeof(struct lenv));
     e->par = NULL;
     e->count = 0;
     e->syms = NULL;
     e->vals = NULL;
+    e->Lispy = Lispy;
     return e;
 }
 

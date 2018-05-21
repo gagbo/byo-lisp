@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "lval.h"
+#include "mpc.h"
 
 /** TODO : Reimplement as a hash table
  * This default implementation gets really bad as the dictionnary gets bigger
@@ -18,10 +19,11 @@ struct lenv {
     int count;
     char** syms;
     struct lval** vals;
+    mpc_parser_t * Lispy;
 };
 
 /* Create an environment */
-struct lenv* lenv_new();
+struct lenv* lenv_new(mpc_parser_t* Lispy);
 
 /* Create a copy of an environment */
 struct lenv* lenv_copy(struct lenv* rhs);

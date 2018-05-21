@@ -34,7 +34,7 @@ main() {
     puts("Lispy Version 0.0.1.1.0");
     puts("Press Ctrl+C, Ctrl+D, or type \"exit\" in prompt to exit\n");
 
-    struct lenv* e = lenv_new();
+    struct lenv* e = lenv_new(Lispy);
     lenv_add_builtins(e);
 
     while (1) {
