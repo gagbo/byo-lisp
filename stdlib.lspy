@@ -14,12 +14,12 @@
 })
 
 ; Unpack List to Function
-(fun {unpack f l} {
-  eval (join (list f) l)
+(fun {unpack func l} {
+  eval (join (list func) l)
 })
 
 ; Unapply List to Function
-(fun {pack f & xs} {f xs})
+(fun {pack func & xs} {func xs})
 
 ; Curried and Uncurried calling
 (def {curry} unpack)
@@ -66,7 +66,7 @@
   cond (== cs nil)
     {error "No Case Found"}
     {cond (== x (fst (fst cs))) {snd (fst cs)} {
-	  unpack case (join (list x) (tail cs))}}
+          unpack case (join (list x) (tail cs))}}
 })
 
 (def {otherwise} t)
@@ -74,9 +74,9 @@
 
 ;;; Misc Functions
 
-(fun {flip f a b} {f b a})
+(fun {flip func a b} {func b a})
 (fun {ghost & xs} {eval xs})
-(fun {comp f g x} {f (g x)})
+(fun {comp func g x} {func (g x)})
 
 ;;; List Functions
 
@@ -96,17 +96,17 @@
 (fun {last l} {nth (- (len l) 1) l})
 
 ; Apply Function to List
-(fun {map f l} {
+(fun {map func l} {
   cond (== l nil)
     {nil}
-    {join (list (f (fst l))) (map f (tail l))}
+    {join (list (func (fst l))) (map func (tail l))}
 })
 
 ; Apply Filter to List
-(fun {filter f l} {
+(fun {filter func l} {
   cond (== l nil)
     {nil}
-    {join (cond (f (fst l)) {head l} {nil}) (filter f (tail l))}
+    {join (cond (func (fst l)) {head l} {nil}) (filter func (tail l))}
 })
 
 ; Reverse List
@@ -117,17 +117,17 @@
 })
 
 ; Fold Left
-(fun {foldl f z l} {
+(fun {foldl func z l} {
   cond (== l nil) 
     {z}
-    {foldl f (f z (fst l)) (tail l)}
+    {foldl func (func z (fst l)) (tail l)}
 })
 
 ; Fold Right
-(fun {foldr f z l} {
+(fun {foldr func z l} {
   cond (== l nil) 
     {z}
-    {f (fst l) (foldr f z (tail l))}
+    {func (fst l) (foldr func z (tail l))}
 })
 
 (fun {sum l} {foldl + 0 l})
@@ -151,17 +151,17 @@
 (fun {split n l} {list (take n l) (drop n l)})
 
 ; Take While
-(fun {take-while f l} {
-  cond (! (unpack f (head l)))
+(fun {take-while func l} {
+  cond (! (unpack func (head l)))
     {nil}
-    {join (head l) (take-while f (tail l))}
+    {join (head l) (take-while func (tail l))}
 })
 
 ; Drop While
-(fun {drop-while f l} {
-  cond (! (unpack f (head l)))
+(fun {drop-while func l} {
+  cond (! (unpack func (head l)))
     {l}
-    {drop-while f (tail l)}
+    {drop-while func (tail l)}
 })
 
 ; Element of List

@@ -333,6 +333,13 @@ builtin_lambda(struct lenv* e, struct lval* a) {
         LASSERT(a, (a->cell[0]->cell[i]->type == LVAL_SYM),
                 "Cannot define non-symbol. Got %s, Expected %s.",
                 ltype_name(a->cell[0]->cell[i]->type), ltype_name(LVAL_SYM));
+        if (lenv_is_builtin(e, a->cell[0]->cell[i])) {
+            struct lval* err =
+                lval_err("def/fun/= : %s is already a builtin function !",
+                         a->cell[0]->cell[i]->sym);
+            lval_del(a);
+            return err;
+        }
     }
 
     struct lval* formals = lval_pop(a, 0);
@@ -353,6 +360,13 @@ builtin_fun(struct lenv* e, struct lval* a) {
         LASSERT(a, (a->cell[0]->cell[i]->type == LVAL_SYM),
                 "Cannot define non-symbol. Got %s, Expected %s.",
                 ltype_name(a->cell[0]->cell[i]->type), ltype_name(LVAL_SYM));
+        if (lenv_is_builtin(e, a->cell[0]->cell[i])) {
+            struct lval* err =
+                lval_err("def/fun/= : %s is already a builtin function !",
+                         a->cell[0]->cell[i]->sym);
+            lval_del(a);
+            return err;
+        }
     }
 
     struct lval* formals = lval_pop(a, 0);

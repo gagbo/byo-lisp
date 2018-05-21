@@ -16,14 +16,14 @@
 
 
 ; Helper functions
-(fun {unpack f l} {
-  eval (join (list f) l)
+(fun {unpack func l} {
+  eval (join (list func) l)
 })
 
-(fun {test name f expected & args}
-     {cond (== (unpack f args) expected)
+(fun {test name func expected & args}
+     {cond (== (unpack func args) expected)
          {show name " : Ok"}
-         {show name " : Not Ok -> Got " (unpack f args) ", Expected " expected}})
+         {show name " : Not Ok -> Got " (unpack func args) ", Expected " expected}})
 
 ;; Arithmetic tests
 (show "Arithmetic tests\n============================\n")

@@ -9,10 +9,10 @@
 
 (load "stdlib.lspy")
 
-(fun {test name f expected & args}
-     {cond (== (unpack f args) expected)
+(fun {test name func expected & args}
+     {cond (== (unpack func args) expected)
          {show name " : Ok"}
-         {show name " : Not Ok -> Got " (unpack f args) ", Expected " expected}})
+         {show name " : Not Ok -> Got " (unpack func args) ", Expected " expected}})
 
 (test "Closure (let + do + put)" let 100 {do (= {x} 100) (x)})
 
@@ -37,15 +37,16 @@
 (test "Take while           " take-while {1 1 1 1} (\ {x} {(== x 1)}) { 1 1 1 1 2 3 })
 (test "Drop while           " drop-while {2 3} (\ {x} {(== x 1)}) { 1 1 1 1 2 3 })
 (test "Element of list true " elem t "test" { 0 2 "test" "alpha" "world" })
-(test "Element of list false" elem f "2" { 0 2 "test" "alpha" "world" })
+(test "Element of list false" elem f 1 { 0 2 "test" "alpha" "world" })
+(test "Element of list empty" elem f "2" {})
 (test "Lookup               " lookup "target" "good key" {{0 "not"}
                                                           {"still not" "not"}
                                                           {"good key" "target"}
                                                           {"hello" -25}})
-(test "Zip                 " zip {{"first" 0}{1 "second"}{"hello" "world"}}
-                                 {"first" 1 "hello"} {0 "second" "world"})
-(test "Unzip               " unzip {{"first" 1 "hello"}{0 "second" "world"}}
-                                   {{"first" 0} {1 "second"} {"hello" "world"}})
+(test "Zip                  " zip {{"first" 0}{1 "second"}{"hello" "world"}}
+                                  {"first" 1 "hello"} {0 "second" "world"})
+(test "Unzip                " unzip {{"first" 1 "hello"}{0 "second" "world"}}
+                                    {{"first" 0} {1 "second"} {"hello" "world"}})
 (show "\n")
 
 ;; Numeric tests
