@@ -1,9 +1,9 @@
+#include "lval.h"
 #include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lval.h"
 
 #include "lenv.h"
 
@@ -41,7 +41,8 @@ ltype_name(int t) {
     }
 }
 
-static void lval_default(struct lval* v) {
+static void
+lval_default(struct lval* v) {
     v->err = NULL;
     v->sym = NULL;
     v->str = NULL;

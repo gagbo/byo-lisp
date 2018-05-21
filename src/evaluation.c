@@ -446,14 +446,15 @@ struct lval*
 builtin_not(struct lenv* e, struct lval* a) {
     return builtin_log_op(e, a, "!");
 }
-struct lval* builtin_true(struct lenv* e, struct lval* a) {
+struct lval*
+builtin_true(struct lenv* e, struct lval* a) {
     (void)e;
     lval_del(a);
     return lval_bool(true);
-
 }
 
-struct lval* builtin_false(struct lenv* e, struct lval* a){
+struct lval*
+builtin_false(struct lenv* e, struct lval* a) {
     (void)e;
     lval_del(a);
     return lval_bool(false);
