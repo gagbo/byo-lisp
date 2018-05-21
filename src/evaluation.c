@@ -47,6 +47,8 @@ static struct lval* builtin_var(struct lenv* e, struct lval* a, char* func);
 static struct lval* builtin_ord(struct lenv* e, struct lval* a, char* op);
 static struct lval* builtin_cmp(struct lenv* e, struct lval* a, char* op);
 
+static struct lval* load_from_file(struct lenv* e, struct lval* a, mpc_parser_t* Lispy);
+
 struct lval*
 builtin_add(struct lenv* e, struct lval* x) {
     return builtin_op(e, x, "+");
@@ -495,4 +497,42 @@ builtin_cond(struct lenv* e, struct lval* a) {
     /* Delete argument list and return */
     lval_del(a);
     return x;
+}
+
+struct lval*
+builtin_load(struct lenv* e, struct lval* a) {
+    LASSERT_NUM_ARGS("load", a, 1);
+    LASSERT_TYPE("load", a, 0, LVAL_STR);
+
+    return load_from_file(e, a, e->Lispy);
+}
+
+static struct lval* load_from_file(struct lenv* e, struct lval* a, mpc_parser_t* Lispy) {
+    mpc_result_t r;
+    if (mpc_parse_contents(a->cell[0]->str, Lispy, &r)) {
+        struct lval* expr = lval_read(r.output);
+        mpc_ast_delete(r.output);
+
+        while (expr->count) {
+            struct lval* x = lval_eval(e, lval_pop(expr, 0));
+            if (x->type == LVAL_ERR) {
+                lval_println(x);
+            }
+            lval_del(x);
+        }
+
+        lval_del(expr);
+        lval_del(a);
+
+        return lval_sexpr();
+    } else {
+        char* err_msg = mpc_err_string(r.error);
+        mpc_err_delete(r.error);
+
+        struct lval* err = lval_err("Could not load file %s", err_msg);
+        free(err_msg);
+        lval_del(a);
+
+        return err;
+    }
 }

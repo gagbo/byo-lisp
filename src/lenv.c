@@ -150,8 +150,11 @@ lenv_add_builtins(struct lenv* e) {
     lenv_add_builtin(e, "\\", builtin_lambda);
     lenv_add_builtin(e, "fun", builtin_fun);
 
-    /* Currently, these builtin symbols must be added in the check inside lenv_is_builtin
-     * otherwise they won't get properly detected and will be redefined
+    lenv_add_builtin(e, "load", builtin_load);
+
+    /* Currently, these builtin symbols must be added in the check inside
+     * lenv_is_builtin otherwise they won't get properly detected and will be
+     * redefined
      */
     lenv_add_builtin_symbol(e, "t", lval_bool(true));
     lenv_add_builtin_symbol(e, "f", lval_bool(false));

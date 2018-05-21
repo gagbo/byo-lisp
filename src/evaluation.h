@@ -60,4 +60,7 @@ struct lval* builtin_lambda(struct lenv* e, struct lval* x);
  */
 struct lval* builtin_fun(struct lenv* e, struct lval* x);
 
+/** Load a file and evaluate it */
+struct lval* builtin_load(struct lenv* e, struct lval* a);
+
 #endif  // EVALUATION_H_
