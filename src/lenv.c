@@ -58,7 +58,7 @@ lenv_is_builtin(struct lenv* e, struct lval* k) {
     struct lval* target = lenv_get(e, k);
     /* Special symbols : exit, t , f */
     if (strcmp(k->sym, "exit") == 0 || strcmp(k->sym, "t") == 0 ||
-        strcmp(k->sym, "f") == 0) {
+        strcmp(k->sym, "f") == 0 || strcmp(k->sym, "nil") == 0) {
         return true;
     }
     if (target->type != LVAL_FUN) {
@@ -160,5 +160,6 @@ lenv_add_builtins(struct lenv* e) {
      */
     lenv_add_builtin_symbol(e, "t", lval_bool(true));
     lenv_add_builtin_symbol(e, "f", lval_bool(false));
+    lenv_add_builtin_symbol(e, "nil", lval_qexpr());
     lenv_add_builtin_symbol(e, "exit", lval_exit_req("'exit' symbol"));
 }
