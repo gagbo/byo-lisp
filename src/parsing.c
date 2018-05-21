@@ -12,7 +12,7 @@
 int
 main() {
     mpc_parser_t* Number = mpc_new("number");
-    mpc_parser_t* Operator = mpc_new("symbol");
+    mpc_parser_t* Symbol = mpc_new("symbol");
     mpc_parser_t* String = mpc_new("string");
     mpc_parser_t* SExpr = mpc_new("sexpr");
     mpc_parser_t* QExpr = mpc_new("qexpr");
@@ -20,17 +20,16 @@ main() {
     mpc_parser_t* Lispy = mpc_new("lispy");
 
     mpca_lang(MPCA_LANG_DEFAULT,
-              "                                                          \
-                number   : /[-]?([0-9]*[.])?[0-9]+([eE]?[+-]?[0-9]+)?/ ; \
-                symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&|%]+/ ;          \
-                string   : /\"(\\\\.|[^\"])*\"/ ;                        \
-                sexpr    : '(' <expr>* ')' ;                             \
-                qexpr    : '{' <expr>* '}' ;                             \
-                expr     : <number> | <symbol> | <string> |              \
-                           <sexpr> | <qexpr> ;                           \
-                lispy    : /^/ <expr>* /$/ ;                             \
+              "                                                                \
+                number   : /[-]?([0-9]*[.])?[0-9]+([eE]?[+-]?[0-9]+)?/ ;       \
+                symbol   : /[a-zA-Z0-9_+\\-*\\/\\\\=<>!&|%]+/ ;                \
+                string   : /\"(\\\\.|[^\"])*\"/ ;                              \
+                sexpr    : '(' <expr>* ')' ;                                   \
+                qexpr    : '{' <expr>* '}' ;                                   \
+                expr     : <number> | <symbol> | <string> | <sexpr> | <qexpr> ;\
+                lispy    : /^/ <expr>* /$/ ;                                   \
               ",
-              Number, Operator, String, SExpr, QExpr, Expr, Lispy);
+              Number, Symbol, String, SExpr, QExpr, Expr, Lispy);
 
     puts("Lispy Version 0.0.1.1.0");
     puts("Press Ctrl+C, Ctrl+D, or type \"exit\" in prompt to exit\n");
@@ -71,6 +70,6 @@ main() {
 
     lenv_del(e);
 
-    mpc_cleanup(7, Number, Operator, String, SExpr, QExpr, Expr, Lispy);
+    mpc_cleanup(7, Number, Symbol, String, SExpr, QExpr, Expr, Lispy);
     return EXIT_SUCCESS;
 }
