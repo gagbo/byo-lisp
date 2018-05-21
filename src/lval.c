@@ -12,6 +12,8 @@
 static struct lval* lval_eval_sexpr(struct lenv* e, struct lval* v);
 static void lval_print_str(struct lval* v);
 static struct lval* lval_read_str(mpc_ast_t* t);
+/* Put all pointers to NULL */
+static void lval_default(struct lval* v);
 
 char*
 ltype_name(int t) {
@@ -39,10 +41,23 @@ ltype_name(int t) {
     }
 }
 
+static void lval_default(struct lval* v) {
+    v->err = NULL;
+    v->sym = NULL;
+    v->str = NULL;
+
+    v->env = NULL;
+    v->formals = NULL;
+    v->body = NULL;
+
+    v->cell = NULL;
+}
+
 struct lval*
 lval_num(double x) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_NUM;
     v->num = x;
     return v;
@@ -52,6 +67,7 @@ struct lval*
 lval_err(char* fmt, ...) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_ERR;
 
     va_list va;
@@ -71,6 +87,7 @@ struct lval*
 lval_sym(char* symbol) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_SYM;
     v->sym = strdup(symbol);
     return v;
@@ -80,6 +97,7 @@ struct lval*
 lval_bool(bool value) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_BOOL;
     v->t = value;
     return v;
@@ -89,6 +107,7 @@ struct lval*
 lval_str(char* s) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_STR;
     v->str = strdup(s);
     return v;
@@ -98,6 +117,7 @@ struct lval*
 lval_builtin(char* name, lbuiltin builtin) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_FUN;
     v->builtin = builtin;
     v->sym = strdup(name);
@@ -108,6 +128,7 @@ struct lval*
 lval_lambda(struct lval* formals, struct lval* body) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_FUN;
 
     v->builtin = NULL;
@@ -208,6 +229,7 @@ struct lval*
 lval_sexpr() {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_SEXPR;
     v->count = 0;
     v->cell = NULL;
@@ -218,6 +240,7 @@ struct lval*
 lval_qexpr() {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_QEXPR;
     v->count = 0;
     v->cell = NULL;
@@ -228,6 +251,7 @@ struct lval*
 lval_exit_req(char* fmt, ...) {
     struct lval* v = malloc(sizeof(struct lval));
     assert(v);
+    lval_default(v);
     v->type = LVAL_EXIT_REQ;
 
     va_list va;
@@ -247,6 +271,7 @@ struct lval*
 lval_copy(struct lval* rhs) {
     struct lval* x = malloc(sizeof(struct lval));
     assert(x);
+    lval_default(x);
 
     x->type = rhs->type;
 
@@ -399,6 +424,9 @@ lval_read(mpc_ast_t* t) {
 
 struct lval*
 lval_add(struct lval* v, struct lval* new_subexpr) {
+    if (NULL == new_subexpr) {
+        return v;
+    }
     v->count++;
     v->cell = realloc(v->cell, sizeof(struct lval*) * v->count);
     v->cell[v->count - 1] = new_subexpr;
