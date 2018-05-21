@@ -170,6 +170,9 @@ struct lval* builtin_load(struct lenv* e, struct lval* a);
 /** Print a value on stdout */
 struct lval* builtin_print(struct lenv* e, struct lval* a);
 
+/** Print interpreted value on stdout */
+struct lval* builtin_show(struct lenv* e, struct lval* a);
+
 /** Return an error message from a string */
 struct lval* builtin_error(struct lenv* e, struct lval* a);
 

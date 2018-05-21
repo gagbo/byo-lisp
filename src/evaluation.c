@@ -84,8 +84,11 @@ struct lval*
 builtin_head(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("head", a, 1);
     LASSERT_TYPE("head", a, 0, LVAL_QEXPR);
-    LASSERT_NON_EMPTY("head", a);
     (void)e;
+
+    if (a->cell[0]->count == 0) {
+        return lval_qexpr();
+    }
 
     struct lval* v = lval_take(a, 0);
     while (v->count > 1) {
@@ -156,7 +159,6 @@ struct lval*
 builtin_cons(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("cons", a, 2);
     struct lval* v = lval_eval(e, lval_pop(a, 0));
-    LASSERT(v, v->type == LVAL_NUM, "First argument is not evaluable !");
     LASSERT_TYPE("cons", a, 0, LVAL_QEXPR);
 
     struct lval* ans = lval_qexpr();
@@ -170,8 +172,7 @@ builtin_len(struct lenv* e, struct lval* a) {
     LASSERT_NUM_ARGS("len", a, 1);
     LASSERT_TYPE("len", a, 0, LVAL_QEXPR);
     (void)e;
-    struct lval* ans = lval_sexpr();
-    lval_add(ans, lval_num(a->cell[0]->count));
+    struct lval* ans = lval_num(a->cell[0]->count);
 
     return ans;
 }
@@ -526,6 +527,19 @@ builtin_print(struct lenv* e, struct lval* a) {
     (void)e;
     for (int i = 0; i < a->count; ++i) {
         lval_print(a->cell[i]);
+        putchar(' ');
+    }
+
+    putchar('\n');
+    lval_del(a);
+    return lval_sexpr();
+}
+
+struct lval*
+builtin_show(struct lenv* e, struct lval* a) {
+    (void)e;
+    for (int i = 0; i < a->count; ++i) {
+        lval_show(a->cell[i]);
         putchar(' ');
     }
 
