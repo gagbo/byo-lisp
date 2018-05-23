@@ -13,15 +13,22 @@ SOURCES = parsing.c \
 
 OBJECTS = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
 
+lisp: $(OBJECTS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o lisp
+
+build/parsing.o: $(SRC_DIR)/evaluation.h $(SRC_DIR)/lenv.h $(SRC_DIR)/lval.h $(SRC_DIR)/mpc.h
+
+build/evaluation.o: $(SRC_DIR)/lenv.h $(SRC_DIR)/mpc.h
+
+build/lval.o: $(SRC_DIR)/lenv.h
+
+build/lenv.o: $(SRC_DIR)/evaluation.h
+
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-lisp: $(OBJECTS)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJECTS) -o lisp
-
-run: lisp
-	./lisp
+.PHONY: clean
 
 clean:
 	rm -f $(OBJECTS)
